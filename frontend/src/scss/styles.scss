@@ -1,0 +1,86 @@
+@use "sass:map";
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/maps";
+
+//$theme-colors: map.merge(
+//                $theme-colors,
+//                (
+//                        "menu": #052C65,
+//                )
+//);
+
+$spacers: map.merge(
+                $spacers,
+                (
+                        6: 2.5rem, // 40px
+                        7: 1.25rem, // 20px
+                        8: 3.125rem, // 50px
+                        9: 4.4375rem, // 71px
+                        10: 0.75rem, // 12px
+                )
+);
+
+@import "bootstrap/scss/bootstrap";
+
+
+
+body {
+
+}
+
+$color-menu: #052C65;
+
+@mixin font {
+  font-family: 'Roboto', sans-serif;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 16px;
+}
+
+li, .menu {
+  @include font;
+  font-weight: 400;
+  color: $color-menu;
+  transition: color 0.3s ease;
+}
+
+.balance {
+  @include font;
+  color: $color-menu;
+  font-weight: 500;
+}
+
+
+.nav-link .menu,
+.nav-link .text-white,
+.nav-link svg path {
+  transition: all 0.25s ease-in-out;
+}
+
+
+.nav-link svg {
+  transition: transform 0.3s ease-in-out;
+}
+
+.nav-item.d-none {
+  display: block !important;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.nav-item.show {
+  max-height: 60px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+
+
+
+
