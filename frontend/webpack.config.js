@@ -8,10 +8,11 @@ const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     mode: 'development',
-    entry: './src/js/index.js',
+    entry: './src/app.js',
     output: {
         filename: 'js/[name].js',
         path: path.resolve(__dirname, 'dist'),
+        publicPath: '/',
         clean: true,
         assetModuleFilename: 'assets/[hash][ext][query]',
     },
@@ -23,6 +24,10 @@ module.exports = {
         port: 8080,
         open: true,
         hot: true,
+        devMiddleware: {
+            index: 'signup.html', // 👈 по умолчанию открываем signup.html
+        },
+        // historyApiFallback: true,
         client: {
             overlay: true,
             progress: true,
@@ -35,9 +40,32 @@ module.exports = {
         level: 'error', // скрыть системные логи
     },
     plugins: [
-        new HtmlWebpackPlugin({ template: './src/index.html' }),
+
+        // Страница регистрации
+        new HtmlWebpackPlugin({
+            template: './src/signup.html',
+            filename: 'signup.html',
+        }),
+
+        // Страница логина
+        new HtmlWebpackPlugin({
+            template: './src/templates/login.html',
+            filename: 'templates/login.html',
+        }),
+
+        // Главная страница — ядро приложения
+        new HtmlWebpackPlugin({
+            template: './src/templates/sidebar.html',
+            filename: 'templates/sidebar.html',
+        }),
+
         new MiniCssExtractPlugin({ filename: 'styles.css' }),
-        new CopyPlugin({ patterns: [{ from: 'src/static', to: 'static' },],}),
+
+        new CopyPlugin({ patterns: [
+                { from: 'src/static', to: 'static' },
+                { from: "src/templates/dashboard", to: "dashboard" },
+            ],
+        }),
     ],
     module: {
         rules: [

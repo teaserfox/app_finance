@@ -18,7 +18,15 @@ $spacers: map.merge(
                         8: 3.125rem, // 50px
                         9: 4.4375rem, // 71px
                         10: 0.75rem, // 12px
+                        11: 3.75rem, //60px
+                        12: 0.4375rem, //7px
+                        13: 0.625rem, //10px
                 )
+);
+
+$position-values: (
+        20: 20,
+        1:1,
 );
 
 @import "bootstrap/scss/bootstrap";
@@ -30,6 +38,7 @@ body {
 }
 
 $color-menu: #052C65;
+$color-input: #6C757D;
 
 @mixin font {
   font-family: 'Roboto', sans-serif;
@@ -58,7 +67,6 @@ li, .menu {
   transition: all 0.25s ease-in-out;
 }
 
-
 .nav-link svg {
   transition: transform 0.3s ease-in-out;
 }
@@ -79,6 +87,41 @@ li, .menu {
   transform: translateY(0);
   pointer-events: auto;
 }
+
+.title {
+  @include font;
+  color: $color-menu;
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 47px;
+}
+
+.text-small {
+  @include font;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.input {
+  &::placeholder {
+    @include font;
+    color: #6C757D;
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 24px;
+    opacity: 1;
+  }
+}
+
+/* Убираем синюю рамку браузера и добавляем аккуратное свечение */
+.form-control {
+  box-shadow: none !important;
+  outline: none !important;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+
 
 
 
