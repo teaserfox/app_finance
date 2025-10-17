@@ -59,7 +59,11 @@ module.exports = {
             filename: 'templates/sidebar.html',
         }),
 
-        new MiniCssExtractPlugin({ filename: 'styles.css' }),
+        new MiniCssExtractPlugin({
+            filename: 'css/[name].css',
+        }),
+
+        // new MiniCssExtractPlugin({ filename: 'styles.css' }),
 
         new CopyPlugin({ patterns: [
                 { from: 'src/static', to: 'static' },
@@ -70,11 +74,16 @@ module.exports = {
     module: {
         rules: [
             {
+                test: /\.m?js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                }
+            },
+            {
                 test: /\.(scss)$/,
                 use: [
-                    process.env.NODE_ENV !== 'production'
-                        ? 'style-loader'
-                        : MiniCssExtractPlugin.loader,
+                   MiniCssExtractPlugin.loader,
                     'css-loader',
                     {
                         loader: 'postcss-loader',

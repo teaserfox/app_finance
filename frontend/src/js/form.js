@@ -2,17 +2,19 @@ import config from "../../config/config.js";
 import { Auth } from "@/services/auth.js";
 import { CustomHttp } from "@/services/custom-http.js";
 
+console.log('%c✅ form.js успешно подключён!', 'color: green; font-size: 16px;');
+
 export class Form {
     constructor(page) {
         this.page = page;
         this.processButton = null;
 
-        // Проверка на авторизацию — если есть токен, переходим в основную часть
-        const accessToken = localStorage.getItem(Auth.accessTokenKey);
-        if (accessToken) {
-            location.href = '#/sidebar';
-            return;
-        }
+        // // Проверка на авторизацию — если есть токен, переходим в основную часть
+        // const accessToken = localStorage.getItem(Auth.accessTokenKey);
+        // if (accessToken) {
+        //     location.href = '#/sidebar';
+        //     return;
+        // }
 
         // Базовые поля для всех страниц
         this.fields = [
@@ -53,8 +55,8 @@ export class Form {
 
             // Добавляем поле подтверждения пароля
             this.fields.push({
-                name: 'confirmPassword',
-                id: 'psw',
+                name: 'passwordRepeat',
+                id: 'passwordRepeat',
                 element: null,
                 valid: false,
             });
@@ -93,7 +95,7 @@ export class Form {
         const value = element.value.trim();
 
         // Проверка поля подтверждения пароля (только на signup)
-        if (field.name === 'confirmPassword') {
+        if (field.name === 'passwordRepeat') {
             const passwordField = this.fields.find(f => f.name === 'password');
             if (
                 value &&
@@ -148,11 +150,15 @@ export class Form {
                     lastName: this.getValue('lastName'),
                     email,
                     password,
+                    passwordRepeat: this.getValue('passwordRepeat'),
                 });
 
                 if (result.error || !result.user) {
                     throw new Error(result.message);
                 }
+                console.log('✅ Регистрация успешна:', result.user);
+                location.href = '#/login';
+                return; // остановим выполнение, чтобы не пошёл логин дальше
             } catch (err) {
                 console.error('Ошибка регистрации:', err);
                 return;
@@ -165,14 +171,14 @@ export class Form {
                 password,
             });
 
-            if (result.error || !result.accessToken) {
+            if (result.error || !result.tokens?.accessToken) {
                 throw new Error(result.message);
             }
 
-            Auth.setTokens(result.accessToken, result.refreshToken);
+            Auth.setTokens(result.tokens.accessToken, result.tokens.refreshToken);
             Auth.setUserInfo({
-                fullName: result.fullName,
-                userId: result.userId,
+                fullName: `${result.user.name} ${result.user.lastName}`,
+                userId: result.user.id,
                 email,
             });
 

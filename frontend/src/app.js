@@ -1,3 +1,4 @@
+import './scss/styles.scss';
 import {Router} from "./router.js";
 
 console.log('%c✅ app.js успешно подключён!', 'color: green; font-size: 16px;');

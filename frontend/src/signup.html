@@ -7,7 +7,7 @@
         <div class="title text-center mb-7">Создайте аккаунт</div>
         <form id="signup-form">
             <div class="position-relative mb-10" style="height: 38px;">
-                <svg class="position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="rounded-start-2 position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_15_254)">
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" fill="#E9ECEF"/>
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" stroke="#CED4DA"/>
@@ -23,7 +23,7 @@
                 <label for="name" class="form-label"></label>
             </div>
             <div class="position-relative mb-10" style="height: 38px;">
-                <svg class="position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="rounded-start-2 position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_29751_5)">
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" fill="#E9ECEF"/>
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" stroke="#CED4DA"/>
@@ -39,7 +39,7 @@
                 <label for="last-name" class="form-label"></label>
             </div>
             <div class="position-relative mb-10" style="height: 38px;">
-                <svg class="position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="rounded-start-2 position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_15_272)">
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" fill="#E9ECEF"/>
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" stroke="#CED4DA"/>
@@ -55,7 +55,7 @@
                 <label for="email" class="form-label"></label>
             </div>
             <div class="position-relative mb-10" style="height: 38px;">
-                <svg class="position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="rounded-start-2 position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_15_290)">
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" fill="#E9ECEF"/>
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" stroke="#CED4DA"/>
@@ -71,7 +71,7 @@
                 <label for="password" class="form-label"></label>
             </div>
             <div class="position-relative mb-7" style="height: 38px;">
-                <svg class="position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="rounded-start-2 position-absolute top-20 start-1 translate-middle-y" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_15_290)">
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" fill="#E9ECEF"/>
                         <path d="M0 4C0 1.79086 1.79086 0 4 0H38V38H4C1.79086 38 0 36.2091 0 34V4Z" stroke="#CED4DA"/>
@@ -83,10 +83,10 @@
                         </clipPath>
                     </defs>
                 </svg>
-                <input type="password" class="form-control ps-8 py-12" id="psw" name="confirmPassword" placeholder="Подтверждение пароля" required autocomplete="new-password">
-                <label for="password" class="form-label"></label>
+                <input type="password" class="form-control ps-8 py-12" id="passwordRepeat" name="passwordRepeat" placeholder="Подтверждение пароля" required autocomplete="new-password">
+                <label for="passwordRepeat" class="form-label"></label>
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-13" id="process" >Войти</button>
+            <button type="button" class="btn btn-primary w-100 py-13" id="process" >Войти</button>
             <div class="text-center mt-13">
                 <small class="text-black text-small">Уже есть аккаунт? <a href="#/login" data-link="login" class="">Войдите в систему</a></small>
             </div>
@@ -94,7 +94,6 @@
     </div>
 </section>
 
-<script src="js/index.js"></script>
 
 
 

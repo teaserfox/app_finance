@@ -1,14 +1,13 @@
 import {Form} from "./js/form.js";
-// import {Choice} from "./components/choice.js";
-// import {Test} from "./components/test.js";
-// import {Result} from "./components/result.js";
-// import {Answer} from "./components/answers.js";
 import {Auth} from "./services/auth.js";
+import {Sidebar} from "@/js/sidebar";
+
+console.log('%c✅ router.js успешно подключён!', 'color: green; font-size: 16px;');
 
 export class Router {
     constructor() {
         // Контейнер, куда будут подгружаться страницы (если используется ядро)
-        this.contentElement = document.getElementById('app-content'); // в index.html
+        this.contentElement = document.getElementById('app-content'); // в sidebar.html
         this.routes = [
             {
                 route: '#/signup',
@@ -26,8 +25,11 @@ export class Router {
                 route: '#/sidebar',
                 title: 'Главная',
                 template: 'templates/sidebar.html',
-                load: () => {
-                    console.log('Загрузка ядра приложения');
+                load: async () => {
+                    new Sidebar('sidebar');
+
+                    const { UserManager } = await import('./utils/url-manager.js');
+                    UserManager.initUserUI();
                 }
             },
             // при необходимости добавим позже:
@@ -46,8 +48,15 @@ export class Router {
 
     async openRoute() {
         const currentHash = window.location.hash.split('?')[0] || '#/signup';
-        const route = this.routes.find(r => r.route === currentHash);
 
+        // Проверка авторизации
+        const accessToken = localStorage.getItem(Auth.accessTokenKey);
+        if (accessToken && ['#/login', '#/signup'].includes(currentHash)) {
+            window.location.hash = '#/sidebar';
+            return;
+        }
+
+        const route = this.routes.find(r => r.route === currentHash);
         if (!route) {
             window.location.hash = '#/signup';
             return;
@@ -57,8 +66,8 @@ export class Router {
         const response = await fetch(route.template);
         const html = await response.text();
 
-        // Если страница login или signup — подменяем весь body (т.к. они не встраиваются в index)
-        if (['#/signup', '#/login'].includes(route.route)) {
+
+        if (['#/signup', '#/login', '#/sidebar'].includes(route.route)) {
             document.body.innerHTML = html;
             document.title = route.title;
             route.load();

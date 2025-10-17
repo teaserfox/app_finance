@@ -1,5 +1,7 @@
 import config from "../../config/config.js";
 
+console.log('%c✅ auth.js успешно подключён!', 'color: green; font-size: 16px;');
+
 export class Auth {
     static accessTokenKey = 'accessToken';
     static refreshTokenKey = 'refreshToken';
@@ -18,8 +20,6 @@ export class Auth {
                     },
                     body: JSON.stringify({ refreshToken })
                 });
-
-                console.log('Refresh response:', response.status, await response.clone().text());
 
                 return response?.status === 200
                     ? ((result => (
