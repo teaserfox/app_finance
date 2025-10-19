@@ -63,8 +63,6 @@ module.exports = {
             filename: 'css/[name].css',
         }),
 
-        // new MiniCssExtractPlugin({ filename: 'styles.css' }),
-
         new CopyPlugin({ patterns: [
                 { from: 'src/static', to: 'static' },
                 { from: "src/templates/dashboard", to: "dashboard" },

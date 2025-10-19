@@ -1,5 +1,7 @@
 // Импортируйте наш пользовательский CSS
 import '../scss/styles.scss'
+import { SessionManager } from '../utils/session-manager.js'
+
 
 // Импортируйте весь JS Bootstrap
 import * as bootstrap from 'bootstrap'
@@ -13,7 +15,22 @@ export class Sidebar {
         }
 
         this.init();
+        this.initLogout(); // 🔹 Добавляем вызов метода инициализации выхода
+
         console.log('%c✅ Sidebar инициализирован', 'color: green; font-weight: bold;');
+    }
+
+    initLogout() {
+        const logoutBtn = document.querySelector('.dropdown-item[href="#logout"]');
+        if (!logoutBtn) {
+            console.warn('⚠️ Кнопка выхода не найдена.');
+            return;
+        }
+
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            SessionManager.handleLogout();
+        });
     }
 
     /**
