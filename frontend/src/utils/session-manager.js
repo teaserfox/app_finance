@@ -1,4 +1,4 @@
-// src/utils/session-manager.js
+
 import { Auth } from '@/services/auth';
 import config from '../../config/config.js';
 
@@ -48,7 +48,7 @@ export class SessionManager {
             localStorage.removeItem('currentUserId');
 
             // === 4. Редирект на страницу регистрации ===
-            window.location.hash = '#/signup';
+            window.location.hash = '#/login';
             console.log(`👋 ${userInfo.fullName || 'Пользователь'} вышел из системы. Аккаунт сохранён.`);
 
         } catch (err) {
@@ -95,5 +95,20 @@ export class SessionManager {
         const users = JSON.parse(localStorage.getItem('users')) || [];
         const id = localStorage.getItem('currentUserId');
         return users.find(u => String(u.id) === String(id)) || null;
+    }
+
+    /** 🧩 Инициализация UI с именем текущего пользователя */
+    static initUserUI() {
+
+        const userDiv = document.getElementById('user');
+        const current = this.getCurrentUser();
+
+        if (userDiv && current?.fullName) {
+            userDiv.textContent = current.fullName;
+            console.log(`👤 Текущий пользователь: ${current.fullName}`);
+        } else {
+            console.warn('⚠️ Нет данных текущего пользователя — перенаправляем на login');
+        }
+        return userDiv;
     }
 }

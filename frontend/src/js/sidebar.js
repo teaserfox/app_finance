@@ -1,6 +1,6 @@
 // Импортируйте наш пользовательский CSS
 import '../scss/styles.scss'
-import { SessionManager } from '../utils/session-manager.js'
+import { SessionManager } from '@/utils/session-manager.js'
 
 
 // Импортируйте весь JS Bootstrap
@@ -16,6 +16,7 @@ export class Sidebar {
 
         this.init();
         this.initLogout(); // 🔹 Добавляем вызов метода инициализации выхода
+        SessionManager.initUserUI(); // 🔹Инициализация Имени
 
         console.log('%c✅ Sidebar инициализирован', 'color: green; font-weight: bold;');
     }
@@ -30,6 +31,7 @@ export class Sidebar {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             SessionManager.handleLogout();
+            SessionManager.initUserUI();
         });
     }
 

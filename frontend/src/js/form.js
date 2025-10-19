@@ -1,6 +1,7 @@
 import config from "../../config/config.js";
 import { Auth } from "@/services/auth.js";
 import { CustomHttp } from "@/services/custom-http.js";
+import {SessionManager} from "@/utils/session-manager.js";
 
 console.log('%c✅ form.js успешно подключён!', 'color: green; font-size: 16px;');
 
@@ -142,6 +143,7 @@ export class Form {
 
         const email = this.getValue('email');
         const password = this.getValue('password');
+        const rememberMe = document.querySelector('#flexCheckDefault')?.checked; // ✅ проверяем чекбокс
 
         if (this.page === 'signup') {
             try {
@@ -165,6 +167,7 @@ export class Form {
             }
         }
 
+        // === ЛОГИН ===
         try {
             const result = await CustomHttp.request(`${config.host}/login`, 'POST', {
                 email,
@@ -175,11 +178,28 @@ export class Form {
                 throw new Error(result.message);
             }
 
+            // сохраняем активного пользователя
             Auth.setTokens(result.tokens.accessToken, result.tokens.refreshToken);
             Auth.setUserInfo({
                 fullName: `${result.user.name} ${result.user.lastName}`,
                 userId: result.user.id,
                 email,
+            });
+
+            // если отмечен чекбокс — добавляем в локальный список
+            if (rememberMe) {
+                Auth.saveUserToList({
+                    fullName: `${result.user.name} ${result.user.lastName}`,
+                    email: result.user.email,
+                    // avatar: `https://api.dicebear.com/9.x/identicon/svg?seed=${result.user.email}`,
+                });
+            }
+
+            // ✅ добавляем текущего пользователя в сессию
+            SessionManager.setCurrentUser({
+                fullName: `${result.user.name} ${result.user.lastName}`,
+                userId: result.user.id,
+                email: result.user.email,
             });
 
             location.href = '#/sidebar';

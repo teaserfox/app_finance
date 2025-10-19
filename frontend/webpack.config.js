@@ -27,7 +27,6 @@ module.exports = {
         devMiddleware: {
             index: 'signup.html', // 👈 по умолчанию открываем signup.html
         },
-        // historyApiFallback: true,
         client: {
             overlay: true,
             progress: true,

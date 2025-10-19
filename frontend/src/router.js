@@ -25,11 +25,7 @@ export class Router {
                 route: '#/sidebar',
                 title: 'Главная',
                 template: 'templates/sidebar.html',
-                load: async () => {
-                    new Sidebar('sidebar');
-                    // const { UserManager } = await import('./utils/url-manager.js');
-                    // UserManager.initUserUI();
-                }
+                load: async () =>  new Sidebar('sidebar')
             },
             // при необходимости добавим позже:
             // {

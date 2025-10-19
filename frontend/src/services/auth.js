@@ -75,6 +75,15 @@ export class Auth {
         return userInfo ? JSON.parse(userInfo) : null;
     }
 
+    static saveUserToList(user) {
+        const users = JSON.parse(localStorage.getItem('userList') || '[]');
+        const exists = users.find(u => u.email === user.email);
+        if (!exists) {
+            users.push(user);
+            localStorage.setItem('userList', JSON.stringify(users));
+        }
+    }
+
     static getUserEmail() {
         const userInfo = this.getUserInfo();
         return userInfo?.email || null;
