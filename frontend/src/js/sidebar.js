@@ -1,26 +1,28 @@
-// Импортируйте наш пользовательский CSS
-import '../scss/styles.scss'
-import { SessionManager } from '@/utils/session-manager.js'
+import '../scss/styles.scss';
+import { SessionManager } from '@/utils/session-manager.js';
+import * as bootstrap from 'bootstrap';
 
-
-// Импортируйте весь JS Bootstrap
-import * as bootstrap from 'bootstrap'
+console.log('%c✅ sidebar.js успешно подключён!', 'color: green; font-weight: bold;');
 
 export class Sidebar {
-    constructor() {
+    constructor(router) {
+        this.router = router;
         this.navLinks = document.querySelectorAll('.nav-link');
+
         if (!this.navLinks.length) {
             console.warn('⚠️ Sidebar: ссылки меню не найдены.');
             return;
         }
 
         this.init();
-        this.initLogout(); // 🔹 Добавляем вызов метода инициализации выхода
-        SessionManager.initUserUI(); // 🔹Инициализация Имени
+        this.initLogout();
+        SessionManager.initUserUI();
+        this.highlightCurrentRoute();
 
         console.log('%c✅ Sidebar инициализирован', 'color: green; font-weight: bold;');
     }
 
+    /** Инициализация выхода */
     initLogout() {
         const logoutBtn = document.querySelector('.dropdown-item[href="#logout"]');
         if (!logoutBtn) {
@@ -28,333 +30,159 @@ export class Sidebar {
             return;
         }
 
-        logoutBtn.addEventListener('click', (e) => {
+        logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            SessionManager.handleLogout();
+            await SessionManager.handleLogout();
             SessionManager.initUserUI();
+            this.router?.navigate('/login'); // ✅ переход через роутер
         });
     }
 
-    /**
-     * Инициализация обработчиков кликов
-     */
+    /** Инициализация событий меню */
     init() {
         this.navLinks.forEach(link => {
             link.addEventListener('click', e => this.handleClick(e, link));
         });
     }
 
-    /**
-     * Главный обработчик клика по ссылке меню
-     */
+    /** Подсветка текущего маршрута при загрузке */
+    highlightCurrentRoute() {
+        const currentHash = window.location.hash;
+        if (!currentHash) return;
+
+        this.navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === currentHash) {
+                this.activateLink(link);
+            } else {
+                this.deactivateLink(link);
+            }
+        });
+    }
+
+    /** Главный обработчик клика */
     handleClick(e, link) {
         e.preventDefault();
 
+        const route = link.getAttribute('href');
         const textDiv = link.querySelector('.menu, .text-white');
         const linkText = textDiv?.textContent.trim();
-        const parentLi = link.closest('.nav-item');
 
-        if (!linkText || !parentLi) return;
-
+        // Переключение категорий
         if (linkText === 'Категории') {
-            this.toggleCategories(link, textDiv, parentLi);
+            this.toggleCategories(link);
             return;
         }
 
-        if (this.isInsideCategory(parentLi)) {
-            this.handleSubCategory(link, textDiv, parentLi);
+        // Подкатегории (Доходы, Расходы)
+        if (this.isInsideCategory(link)) {
+            this.handleSubCategory(link);
             return;
         }
 
-        this.handleRegularLink(link, textDiv);
+        // Обычные ссылки (Главная и т.п.)
+        this.handleRegularLink(link);
+
+        // ✅ Навигация через роутер
+        if (this.router && route) {
+            this.router.navigate(route);
+        }
     }
 
-    /**
-     * Проверяет, находится ли ссылка внутри блока "Категории"
-     */
-    isInsideCategory(parentLi) {
-        const prev1 = parentLi.previousElementSibling;
+    /** Проверяет, находится ли ссылка внутри блока "Категории" */
+    isInsideCategory(link) {
+        const parentLi = link.closest('.nav-item');
+        const prev1 = parentLi?.previousElementSibling;
         const prev2 = prev1?.previousElementSibling;
         const getText = li => li?.querySelector('.menu, .text-white')?.textContent.trim();
         return getText(prev1) === 'Категории' || getText(prev2) === 'Категории';
     }
 
-    /**
-     * Раскрытие/сворачивание блока "Категории"
-     */
-    toggleCategories(link, textDiv, parentLi) {
+    /** Раскрытие/сворачивание блока "Категории" */
+    toggleCategories(link) {
         const svg = link.querySelector('svg path');
-        const subLinks = [parentLi.nextElementSibling, parentLi.nextElementSibling?.nextElementSibling].filter(Boolean);
-        const isActive = link.classList.contains('active');
+        const parentLi = link.closest('.nav-item');
+        const subLinks = [
+            parentLi.nextElementSibling,
+            parentLi.nextElementSibling?.nextElementSibling
+        ].filter(Boolean);
 
-        // Сбрасываем активные состояния у остальных верхних ссылок
+        const isActive = link.classList.contains('active');
         this.resetTopLinksExceptCategories();
 
         if (!isActive) {
-            this.activateLink(link, textDiv, svg);
+            this.activateLink(link, svg);
             link.querySelector('svg').style.transform = 'rotate(90deg)';
             subLinks.forEach(li => li.classList.remove('d-none'));
         } else {
-            this.deactivateLink(link, textDiv, svg);
+            this.deactivateLink(link, svg);
             link.querySelector('svg').style.transform = '';
             subLinks.forEach(li => li.classList.add('d-none'));
         }
     }
 
-    /**
-     * Сбрасывает активность у всех пунктов верхнего уровня, кроме "Категории"
-     */
+    /** Сброс активности у остальных пунктов верхнего уровня */
     resetTopLinksExceptCategories() {
-        this.navLinks.forEach(otherLink => {
-            const otherTextDiv = otherLink.querySelector('.menu, .text-white');
-            const otherText = otherTextDiv?.textContent.trim();
-
-            if (otherText !== 'Категории') {
-                otherLink.classList.remove('active');
-                if (otherTextDiv) {
-                    otherTextDiv.classList.remove('text-white');
-                    otherTextDiv.classList.add('menu');
-                }
-                const svgPaths = otherLink.querySelectorAll('svg path');
-                svgPaths.forEach(path => path.setAttribute('fill', '#052C65'));
-            }
+        this.navLinks.forEach(link => {
+            const text = link.querySelector('.menu, .text-white')?.textContent.trim();
+            if (text !== 'Категории') this.deactivateLink(link);
         });
     }
 
-    /**
-     * Обработка кликов по "Доходы"/"Расходы" внутри категории
-     */
-    handleSubCategory(link, textDiv, parentLi) {
-        const allItems = parentLi.parentElement.querySelectorAll('.nav-item');
-
-        // Сбрасываем активность у других подкатегорий
-        allItems.forEach(li => {
-            const linkEl = li.querySelector('.nav-link');
-            const txt = linkEl?.querySelector('.menu, .text-white')?.textContent.trim();
-            if (txt === 'Доходы' || txt === 'Расходы') {
-                linkEl.classList.remove('active');
-                const innerText = linkEl.querySelector('.menu, .text-white');
-                if (innerText) {
-                    innerText.classList.remove('text-white');
-                    innerText.classList.add('menu');
-                }
-            }
+    /** Подкатегории (Доходы, Расходы) */
+    handleSubCategory(link) {
+        const parentUl = link.closest('ul');
+        const allItems = parentUl?.querySelectorAll('.nav-link') || [];
+        allItems.forEach(l => {
+            const txt = l.querySelector('.menu, .text-white')?.textContent.trim();
+            if (txt === 'Доходы' || txt === 'Расходы') this.deactivateLink(l);
         });
 
-        // Активируем выбранную подкатегорию
-        this.activateLink(link, textDiv);
+        this.activateLink(link);
 
-        // Оставляем категорию раскрытой
-        const parentCategoryLink = Array.from(this.navLinks).find(l => {
+        const categoryLink = Array.from(this.navLinks).find(l => {
             const txt = l.querySelector('.menu, .text-white')?.textContent.trim();
             return txt === 'Категории';
         });
-        if (parentCategoryLink) {
-            const catText = parentCategoryLink.querySelector('.menu, .text-white');
-            this.activateLink(parentCategoryLink, catText, parentCategoryLink.querySelector('svg path'));
-            parentCategoryLink.querySelector('svg').style.transform = 'rotate(90deg)';
+
+        if (categoryLink) {
+            this.activateLink(categoryLink, categoryLink.querySelector('svg path'));
+            categoryLink.querySelector('svg').style.transform = 'rotate(90deg)';
         }
     }
 
-    /**
-     * Обработка обычных ссылок (Главная, верхние Доходы и т.п.)
-     */
-    handleRegularLink(link, textDiv) {
-        this.navLinks.forEach(otherLink => {
-            otherLink.classList.remove('active');
-            const otherTextDiv = otherLink.querySelector('.menu, .text-white');
-            if (otherTextDiv) {
-                otherTextDiv.classList.remove('text-white');
-                otherTextDiv.classList.add('menu');
-            }
-            const svgPaths = otherLink.querySelectorAll('svg path');
-            svgPaths.forEach(path => path.setAttribute('fill', '#052C65'));
-
-            const otherText = otherTextDiv?.textContent.trim();
-            if (otherText === 'Категории') {
-                const catSvg = otherLink.querySelector('svg path');
-                if (catSvg) catSvg.setAttribute('fill', '#052C65');
-                otherLink.querySelector('svg').style.transform = '';
-                const parentLi = otherLink.closest('.nav-item');
-                const subLinks = [parentLi.nextElementSibling, parentLi.nextElementSibling?.nextElementSibling].filter(Boolean);
-                subLinks.forEach(li => li.classList.add('d-none'));
-            }
-        });
-
-        this.activateLink(link, textDiv);
-        const svgPaths = link.querySelectorAll('svg path');
-        svgPaths.forEach(path => path.setAttribute('fill', '#fff'));
+    /** Обычные ссылки (Главная, Аналитика и т.д.) */
+    handleRegularLink(link) {
+        this.navLinks.forEach(l => this.deactivateLink(l));
+        this.activateLink(link);
     }
 
-    /**
-     * Активирует ссылку меню
-     */
-    activateLink(link, textDiv, svg) {
+    /** Активирует ссылку */
+    activateLink(link, svg) {
+        const textDiv = link.querySelector('.menu, .text-white');
         link.classList.add('active');
         if (textDiv) {
             textDiv.classList.remove('menu');
             textDiv.classList.add('text-white');
         }
         if (svg) svg.setAttribute('fill', '#fff');
+        link.querySelectorAll('svg path').forEach(path => path.setAttribute('fill', '#fff'));
     }
 
-    /**
-     * Деактивирует ссылку меню
-     */
-    deactivateLink(link, textDiv, svg) {
+    /** Деактивирует ссылку */
+    deactivateLink(link, svg) {
+        const textDiv = link.querySelector('.menu, .text-white');
         link.classList.remove('active');
         if (textDiv) {
             textDiv.classList.remove('text-white');
             textDiv.classList.add('menu');
         }
         if (svg) svg.setAttribute('fill', '#052C65');
+        link.querySelectorAll('svg path').forEach(path => path.setAttribute('fill', '#052C65'));
     }
 }
 
 
-
-
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     const navLinks = document.querySelectorAll('.nav-link');
-//
-//     navLinks.forEach(link => {
-//         link.addEventListener('click', e => {
-//             e.preventDefault();
-//
-//             const textDiv = link.querySelector('.menu, .text-white');
-//             const linkText = textDiv?.textContent.trim();
-//             const parentLi = link.closest('.nav-item');
-//
-//             // === ОБРАБОТКА КАТЕГОРИИ ===
-//             if (linkText === 'Категории') {
-//                 const svg = link.querySelector('svg path');
-//                 const subLinks = [parentLi.nextElementSibling, parentLi.nextElementSibling?.nextElementSibling].filter(Boolean);
-//                 const isActive = link.classList.contains('active');
-//
-//                 // Сбрасываем активные классы у других ссылок верхнего уровня
-//                 navLinks.forEach(otherLink => {
-//                     const otherTextDiv = otherLink.querySelector('.menu, .text-white');
-//                     const otherText = otherTextDiv?.textContent.trim();
-//
-//                     if (otherText !== 'Категории') {
-//                         otherLink.classList.remove('active');
-//                         if (otherTextDiv) {
-//                             otherTextDiv.classList.remove('text-white');
-//                             otherTextDiv.classList.add('menu');
-//                         }
-//                         const svgPaths = otherLink.querySelectorAll('svg path');
-//                         svgPaths.forEach(path => path.setAttribute('fill', '#052C65'));
-//                     }
-//                 });
-//
-//                 // Тогглим категорию
-//                 if (!isActive) {
-//                     link.classList.add('active');
-//                     if (textDiv) {
-//                         textDiv.classList.remove('menu');
-//                         textDiv.classList.add('text-white');
-//                     }
-//                     if (svg) svg.setAttribute('fill', '#fff');
-//                     link.querySelector('svg').style.transform = 'rotate(90deg)';
-//                     subLinks.forEach(li => li.classList.remove('d-none'));
-//                 } else {
-//                     link.classList.remove('active');
-//                     if (textDiv) {
-//                         textDiv.classList.remove('text-white');
-//                         textDiv.classList.add('menu');
-//                     }
-//                     if (svg) svg.setAttribute('fill', '#052C65');
-//                     link.querySelector('svg').style.transform = '';
-//                     subLinks.forEach(li => li.classList.add('d-none'));
-//                 }
-//
-//                 return;
-//             }
-//
-//             // === ОБРАБОТКА ВЫБОРА ДОХОДЫ / РАСХОДЫ ВНУТРИ КАТЕГОРИЙ ===
-//             const parentCategoryLink = Array.from(navLinks).find(l => {
-//                 const txt = l.querySelector('.menu, .text-white')?.textContent.trim();
-//                 return txt === 'Категории';
-//             });
-//
-//             const isInsideCategory =
-//                 parentLi.previousElementSibling?.querySelector('.menu, .text-white')?.textContent.trim() === 'Категории' ||
-//                 parentLi.previousElementSibling?.previousElementSibling?.querySelector('.menu, .text-white')?.textContent.trim() === 'Категории';
-//
-//             if (isInsideCategory) {
-//                 // Снимаем активный класс с других подкатегорий (только доходы/расходы)
-//                 const allItems = parentLi.parentElement.querySelectorAll('.nav-item');
-//                 allItems.forEach(li => {
-//                     const linkEl = li.querySelector('.nav-link');
-//                     const txt = linkEl?.querySelector('.menu, .text-white')?.textContent.trim();
-//                     if (txt === 'Доходы' || txt === 'Расходы') {
-//                         linkEl.classList.remove('active');
-//                         const innerText = linkEl.querySelector('.menu, .text-white');
-//                         if (innerText) {
-//                             innerText.classList.remove('text-white');
-//                             innerText.classList.add('menu');
-//                         }
-//                     }
-//                 });
-//
-//                 // Добавляем активный класс выбранной подкатегории
-//                 link.classList.add('active');
-//                 if (textDiv) {
-//                     textDiv.classList.remove('menu');
-//                     textDiv.classList.add('text-white');
-//                 }
-//
-//                 // Категория остаётся активной и раскрытой
-//                 if (parentCategoryLink) {
-//                     parentCategoryLink.classList.add('active');
-//                     const catText = parentCategoryLink.querySelector('.menu, .text-white');
-//                     if (catText) {
-//                         catText.classList.remove('menu');
-//                         catText.classList.add('text-white');
-//                     }
-//                     const catSvg = parentCategoryLink.querySelector('svg path');
-//                     if (catSvg) catSvg.setAttribute('fill', '#fff');
-//                     parentCategoryLink.querySelector('svg').style.transform = 'rotate(90deg)';
-//                 }
-//
-//                 return;
-//             }
-//
-//             // === ОБЫЧНЫЕ ССЫЛКИ (Главная, верхние Доходы и т.п.) ===
-//             navLinks.forEach(otherLink => {
-//                 otherLink.classList.remove('active');
-//                 const otherTextDiv = otherLink.querySelector('.menu, .text-white');
-//                 if (otherTextDiv) {
-//                     otherTextDiv.classList.remove('text-white');
-//                     otherTextDiv.classList.add('menu');
-//                 }
-//                 const svgPaths = otherLink.querySelectorAll('svg path');
-//                 svgPaths.forEach(path => path.setAttribute('fill', '#052C65'));
-//
-//                 // Если категория была активна — закрываем её
-//                 const otherText = otherTextDiv?.textContent.trim();
-//                 if (otherText === 'Категории') {
-//                     otherLink.querySelector('svg').style.transform = '';
-//                     const catSvg = otherLink.querySelector('svg path');
-//                     if (catSvg) catSvg.setAttribute('fill', '#052C65');
-//                     const parentLi = otherLink.closest('.nav-item');
-//                     const subLinks = [parentLi.nextElementSibling, parentLi.nextElementSibling?.nextElementSibling].filter(Boolean);
-//                     subLinks.forEach(li => li.classList.add('d-none'));
-//                 }
-//             });
-//
-//             // Активируем текущую ссылку
-//             link.classList.add('active');
-//             if (textDiv) {
-//                 textDiv.classList.remove('menu');
-//                 textDiv.classList.add('text-white');
-//             }
-//             const svgPaths = link.querySelectorAll('svg path');
-//             svgPaths.forEach(path => path.setAttribute('fill', '#fff'));
-//         });
-//     });
-// });
 
 
 

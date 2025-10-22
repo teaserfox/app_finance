@@ -1,37 +1,63 @@
-
 import { Auth } from '@/services/auth';
+import { navigate } from '@/router.js'; // 👈 новый импорт
 import config from '../../config/config.js';
 
-console.log('%c✅ session-manager.js успешно подключён!', 'color: green; font-size: 16px;');
+console.log('%c✅ session-manager.js подключён!', 'color: green; font-size: 16px;');
 
 export class SessionManager {
 
-    /** 🚪 Выход пользователя (без удаления из списка зарегистрированных) */
+    // === 🔒 Приватные методы для безопасного доступа к localStorage ===
+    static _safeGet(key, fallback = null) {
+        try {
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : fallback;
+        } catch {
+            console.warn(`⚠️ Повреждён localStorage ключ: ${key}`);
+            return fallback;
+        }
+    }
+
+    static _safeSet(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {
+            console.error(`❌ Не удалось сохранить ${key}:`, e);
+        }
+    }
+
+    static _getUsers() {
+        return this._safeGet('users', []);
+    }
+
+    static _saveUsers(users) {
+        this._safeSet('users', users);
+    }
+
+    // === 🚪 Выход пользователя ===
     static async handleLogout() {
         try {
             const refreshToken = localStorage.getItem(Auth.refreshTokenKey);
-            const userInfo = JSON.parse(localStorage.getItem(Auth.userInfoKey) || '{}');
-            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const userInfo = this._safeGet(Auth.userInfoKey, {});
+            const users = this._getUsers();
 
-            // === 1. Отправляем logout-запрос, если есть refreshToken ===
             if (refreshToken) {
-                await fetch(`${config.host}/logout`, {
+                const res = await fetch(`${config.host}/logout`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ refreshToken }),
                 });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.message || 'Logout failed');
+                }
             }
 
-            // === 2. Если пользователь есть — обновляем его токены в списке ===
             if (userInfo.userId) {
                 const idx = users.findIndex(u => u.id === userInfo.userId);
                 if (idx !== -1) {
-                    users[idx].tokens = null; // обнуляем токены, чтобы логин был заново
+                    users[idx].tokens = null;
                 } else {
-                    // если впервые — добавляем в систему (на случай, если register не сохранил)
                     users.push({
                         id: userInfo.userId,
                         fullName: userInfo.fullName,
@@ -39,27 +65,25 @@ export class SessionManager {
                         tokens: null,
                     });
                 }
-                localStorage.setItem('users', JSON.stringify(users));
+                this._saveUsers(users);
             }
 
-            // === 3. Удаляем только активные токены и текущего пользователя ===
             Auth.removeTokens();
             localStorage.removeItem(Auth.userInfoKey);
             localStorage.removeItem('currentUserId');
 
-            // === 4. Редирект на страницу регистрации ===
-            window.location.hash = '#/login';
-            console.log(`👋 ${userInfo.fullName || 'Пользователь'} вышел из системы. Аккаунт сохранён.`);
+            navigate('/login'); // 👈 заменили hash на navigate()
+            console.log(`👋 ${userInfo.fullName || 'Пользователь'} вышел из системы`);
 
         } catch (err) {
             console.error('❌ Ошибка при выходе:', err);
-            window.location.hash = '#/signup';
+            navigate('/signup');
         }
     }
 
-    /** 💾 Установка активного пользователя (при login или signup) */
+    // === 💾 Установка активного пользователя ===
     static setCurrentUser(userInfo) {
-        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const users = this._getUsers();
         const idx = users.findIndex(u => u.id === userInfo.userId);
 
         const userData = {
@@ -72,34 +96,30 @@ export class SessionManager {
             },
         };
 
-        if (idx !== -1) {
-            users[idx] = userData;
-        } else {
-            users.push(userData);
-        }
+        if (idx !== -1) users[idx] = userData;
+        else users.push(userData);
 
-        localStorage.setItem('users', JSON.stringify(users));
+        this._saveUsers(users);
         localStorage.setItem('currentUserId', userInfo.userId);
-        localStorage.setItem(Auth.userInfoKey, JSON.stringify(userInfo));
+        this._safeSet(Auth.userInfoKey, userInfo);
 
         console.log(`✅ Активен пользователь: ${userInfo.fullName}`);
     }
 
-    /** 📋 Список всех пользователей */
+    // === 📋 Все пользователи ===
     static getAllUsers() {
-        return JSON.parse(localStorage.getItem('users')) || [];
+        return this._getUsers();
     }
 
-    /** 👤 Текущий пользователь */
+    // === 👤 Текущий пользователь ===
     static getCurrentUser() {
-        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const users = this._getUsers();
         const id = localStorage.getItem('currentUserId');
         return users.find(u => String(u.id) === String(id)) || null;
     }
 
-    /** 🧩 Инициализация UI с именем текущего пользователя */
+    // === 🧩 Инициализация UI ===
     static initUserUI() {
-
         const userDiv = document.getElementById('user');
         const current = this.getCurrentUser();
 
@@ -107,8 +127,10 @@ export class SessionManager {
             userDiv.textContent = current.fullName;
             console.log(`👤 Текущий пользователь: ${current.fullName}`);
         } else {
-            console.warn('⚠️ Нет данных текущего пользователя — перенаправляем на login');
+            console.warn('⚠️ Нет данных пользователя — перенаправляем на login');
+            navigate('/login'); // 👈 новый переход
         }
         return userDiv;
     }
 }
+
