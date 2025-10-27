@@ -1,11 +1,12 @@
-import '../scss/styles.scss';
+
 import { SessionManager } from '@/utils/session-manager.js';
-import * as bootstrap from 'bootstrap';
+import { routerInstance } from '@/router.js'; // ✅ Импортируем существующий экземпляр
+
 
 console.log('%c✅ sidebar.js успешно подключён!', 'color: green; font-weight: bold;');
 
 export class Sidebar {
-    constructor(router) {
+    constructor(router = routerInstance)  {
         this.router = router;
         this.navLinks = document.querySelectorAll('.nav-link');
 
@@ -34,7 +35,7 @@ export class Sidebar {
             e.preventDefault();
             await SessionManager.handleLogout();
             SessionManager.initUserUI();
-            this.router?.navigate('/login'); // ✅ переход через роутер
+            this.router.navigate('#/login', {replace: true});
         });
     }
 
@@ -65,8 +66,7 @@ export class Sidebar {
         e.preventDefault();
 
         const route = link.getAttribute('href');
-        const textDiv = link.querySelector('.menu, .text-white');
-        const linkText = textDiv?.textContent.trim();
+        const linkText = link.querySelector('.menu, .text-white')?.textContent.trim();
 
         // Переключение категорий
         if (linkText === 'Категории') {
@@ -77,14 +77,12 @@ export class Sidebar {
         // Подкатегории (Доходы, Расходы)
         if (this.isInsideCategory(link)) {
             this.handleSubCategory(link);
-            return;
+        } else {
+            this.handleRegularLink(link);
         }
 
-        // Обычные ссылки (Главная и т.п.)
-        this.handleRegularLink(link);
-
-        // ✅ Навигация через роутер
-        if (this.router && route) {
+        // ✅ Навигация через роутер для всех ссылок с href="#/"
+        if (this.router && route && route.startsWith('#/')) {
             this.router.navigate(route);
         }
     }
@@ -149,6 +147,14 @@ export class Sidebar {
             this.activateLink(categoryLink, categoryLink.querySelector('svg path'));
             categoryLink.querySelector('svg').style.transform = 'rotate(90deg)';
         }
+
+        // ✅ Навигация на универсальную страницу с параметром type
+        const subText = link.querySelector('.menu, .text-white')?.textContent.trim();
+        if (subText === 'Доходы') {
+            this.router.navigate('#/dashboard/categories?type=income');
+        } else if (subText === 'Расходы') {
+            this.router.navigate('#/dashboard/categories?type=expense');
+        }
     }
 
     /** Обычные ссылки (Главная, Аналитика и т.д.) */
@@ -181,6 +187,8 @@ export class Sidebar {
         link.querySelectorAll('svg path').forEach(path => path.setAttribute('fill', '#052C65'));
     }
 }
+
+
 
 
 

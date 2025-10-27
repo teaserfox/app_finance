@@ -18,6 +18,9 @@
 import {Auth} from "@/services/auth.js";
 import {Form} from "@/js/form.js";
 import {Sidebar} from "@/js/sidebar.js";
+import {IncomeCategoriesPage} from "@/income/categories.js";
+import {IncomeCategoryForm} from "@/income/income-category-form.js";
+import {IncomeCategoryEditPage} from "@/income/income-category-edit.js";
 
 
 export class Router {
@@ -52,28 +55,47 @@ export class Router {
                 }
             },
             {
-                path: '#/dashboard/balance',
-                template: 'dashboard/balance.html',
-                protected: true,
-                name: 'balance'
-            },
-            {
                 path: '#/dashboard/categories',
                 template: 'dashboard/categories.html',
                 protected: true,
-                name: 'categories'
+                name: 'categories',
+                load: (router) => {
+                    const paramsString = window.location.hash.split('?')[1] || '';
+                    const params = new URLSearchParams(paramsString);
+                    const type = params.get('type') || 'income';
+                    console.log(type);
+                    new IncomeCategoriesPage(router, type);
+                }
             },
             {
-                path: '#/dashboard/operations',
-                template: 'dashboard/operations.html',
+                path: '#/dashboard/category-form',
+                template: 'dashboard/income-category-form.html',
                 protected: true,
-                name: 'operations'
+                name: 'category-form',
+                load: (router) => {
+                    // берем тип из query
+                    const params = new URLSearchParams(window.location.hash.split('?')[1]);
+                    const type = params.get('type') || 'income';
+                    new IncomeCategoryForm(router, type);
+                }
+            },
+            {
+                path: '#/dashboard/category-edit',
+                template: 'dashboard/income-category-edit.html',
+                protected: true,
+                name: 'category-edit',
+                load: (router) => {
+                    const params = new URLSearchParams(window.location.hash.split('?')[1]);
+                    const type = params.get('type') || 'income';
+                    const id = params.get('id');
+                    new IncomeCategoryEditPage(router, type, id);
+                }
             },
         ];
 
         this.defaultRoute = '#/login';
         this.appContainer = null;
-        this.loadedModules = new Set();
+        this.sidebarLoaded = false;
     }
 
     /**
@@ -81,10 +103,8 @@ export class Router {
      */
     init() {
         this.appContainer = document.getElementById('app-content') || document.body;
-
         window.addEventListener('hashchange', () => this.handleRouteChange());
         window.addEventListener('DOMContentLoaded', () => this.handleRouteChange());
-
         console.log('%c✅ Router инициализирован (class version)', 'color: green; font-weight: bold;');
     }
 
@@ -115,10 +135,11 @@ export class Router {
      */
     navigate(hash, options = {replace: false}) {
         if (!hash) return;
-
         // Нормализация: 'login' → '#/login'
         if (!hash.startsWith('#/')) {
             hash = '#/' + hash.replace(/^#\/?/, '');
+        } else {
+            hash = hash.replace(/^#+/, '#'); // убирает двойные решётки
         }
 
         if (options.replace) {
@@ -156,8 +177,32 @@ export class Router {
             return this.navigate('#/sidebar');
         }
 
+        // --- Управление Sidebar ---
+        const sidebarContainer = document.getElementById('sidebar-container');
+        const mainWrapper = document.getElementById('index');
+        if (currentHash.startsWith('#/dashboard')) {
+            if (!this.sidebarLoaded) {
+                try {
+                    const sidebarHtml = await fetch(this.templatesBasePath + 'sidebar.html').then(r => r.text());
+                    sidebarContainer.innerHTML = sidebarHtml;
+                    new Sidebar(this);
+                    this.sidebarLoaded = true;
+                } catch (err) {
+                    console.warn('⚠️ Ошибка при загрузке sidebar:', err);
+                }
+            }
+
+            sidebarContainer.style.display = 'block';
+            mainWrapper.classList.remove('justify-content-center');
+        } else {
+            if (sidebarContainer) sidebarContainer.style.display = 'none';
+            mainWrapper.classList.add('justify-content-center');
+        }
+
+        // --- Загрузка контента страницы ---
         await this.loadTemplateAndInit(route);
     }
+
 
     /**
      * Загрузка шаблона и инициализация соответствующего JS-модуля
@@ -166,59 +211,34 @@ export class Router {
         if (!this.appContainer) return;
 
         const templatePath = this.templatesBasePath + route.template;
+
         let res;
         try {
             res = await fetch(templatePath);
+            if (!res.ok) {
+                console.warn('⚠️ Шаблон не найден или ошибка сервера:', templatePath, res.status);
+                return this.loadNotFound();
+            }
         } catch (err) {
             console.warn('⚠️ Ошибка при fetch шаблона:', templatePath, err);
             return this.loadNotFound();
         }
 
-        if (!res.ok) {
-            console.warn('⚠️ Шаблон не найден или ошибка сервера:', templatePath, res.status);
+        try {
+            const html = await res.text();
+            this.appContainer.innerHTML = html;
+
+            // --- Вызов user-defined load() если есть ---
+            if (typeof route.load === 'function') {
+                const maybePromise = route.load(this, this.appContainer);
+                if (maybePromise instanceof Promise) await maybePromise;
+            }
+
+        } catch (err) {
+            console.warn('⚠️ Ошибка при инициализации контента страницы:', templatePath, err);
             return this.loadNotFound();
         }
-
-        const html = await res.text();
-        this.appContainer.innerHTML = html;
-
-        // --- Вызов user-defined load() если есть ---
-        if (typeof route.load === 'function') {
-            try {
-                // вызываем синхронно или асинхронно (поддерживаем Promise)
-                const maybePromise = route.load(this, this.appContainer);
-                if (maybePromise instanceof Promise) {
-                    await maybePromise;
-                }
-            } catch (err) {
-                console.warn('⚠️ Ошибка в route.load():', err);
-            }
-            return;
-        }
-
-        // --- Для обратной совместимости: если остался initModule (но без динамики) ---
-        if (route.initModule) {
-            // если хочешь — реализуй карту статических импортов здесь, но не динамический import()
-            console.warn('⚠️ route.initModule устарел — используйте route.load вместо initModule');
-        }
     }
-
-
-    /**
-     * Динамическая инициализация JS-модуля страницы
-     */
-    async initModule(modulePath) {
-        try {
-            const module = await import(/* @vite-ignore */ modulePath);
-            if (module && typeof module.init === 'function') {
-                await module.init();
-            }
-            this.loadedModules.add(modulePath);
-        } catch (err) {
-            console.warn('⚠️ Ошибка загрузки initModule:', err);
-        }
-    }
-
     /**
      * Загрузка страницы 404
      */
@@ -227,15 +247,33 @@ export class Router {
         try {
             const res = await fetch(path404);
             if (!res.ok) {
-                this.appContainer.innerHTML = `<div class="p-5 text-center">Страница не найдена</div>`;
+                if (this.appContainer) {
+                    this.appContainer.innerHTML = `<div class="p-5 text-center">Страница не найдена</div>`;
+                }
                 return;
             }
-            this.appContainer.innerHTML = await res.text();
+            const html = await res.text();
+            if (this.appContainer) {
+                this.appContainer.innerHTML = html;
+            }
         } catch {
-            this.appContainer.innerHTML = `<div class="p-5 text-center">Страница не найдена</div>`;
+            if (this.appContainer) {
+                this.appContainer.innerHTML = `<div class="p-5 text-center">Страница не найдена</div>`;
+            }
         }
     }
 }
+
+// создаём один экземпляр роутера для всего приложения
+    export
+    const
+    routerInstance = new Router();
+
+// удобная функция navigate
+    export
+    const
+    navigate = (path) => routerInstance.navigate(path);
+
 
 
 

@@ -1,0 +1,36 @@
+<div class="container p-0 mt-9">
+  <div class="mb-6 title" id="category">Доходы</div>
+
+  <div
+          id="income-categories-container"
+          class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
+  >
+    <!-- Карточки категорий будут рендериться динамически через JS -->
+  </div>
+</div>
+
+<!-- Модалка подтверждения удаления -->
+<div
+        class="modal fade"
+        id="confirmModal"
+        tabindex="-1"
+        aria-labelledby="confirmModalLabel"
+        aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-body text-center delete">
+        Вы действительно хотите удалить категорию?
+        Связанные доходы останутся без категории.
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" id="confirmDeleteBtn" class="btn btn-success px-4">
+          Да, удалить
+        </button>
+        <button type="button" class="btn btn-danger px-4" data-bs-dismiss="modal">
+          Не удалять
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

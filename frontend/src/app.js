@@ -1,10 +1,10 @@
 import './scss/styles.scss';
-console.log('%c✅ app.js выполняется!', 'color: green; font-weight: bold;');
+import * as bootstrap from 'bootstrap';
+window.bootstrap = bootstrap;
+
 import {Router} from "./router.js";
-console.log('Router:', Router);
 
-console.log('%c✅ app.js успешно подключён!', 'color: green; font-size: 16px;');
-
+console.log('%c✅ app.js выполняется!', 'color: green; font-weight: bold;');
 
 class App {
     constructor() {

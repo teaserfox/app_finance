@@ -6,27 +6,37 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const autoprefixer = require('autoprefixer');
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 module.exports = {
-    mode: process.env.NODE_ENV || 'development',
+    mode: isDev ? 'development' : 'production',
 
     entry: './src/app.js',
 
     output: {
         filename: 'js/[name].js',
         path: path.resolve(__dirname, 'dist'),
-        publicPath: './', // 👈 корректно для SPA и деплоя
+        publicPath: '/',
         clean: true,
     },
 
-    devtool: 'source-map',
+    ignoreWarnings: [
+        {
+            module: /sass-loader/,
+            message: /@import rules are deprecated/,
+        },
+    ],
+
+    devtool: isDev ? 'eval-source-map' : 'source-map',
 
     devServer: {
         static: path.resolve(__dirname, 'dist'),
         compress: true,
-        watchFiles: ['src/**/*', 'index.html'],
+        watchFiles: ['src/**/*', 'index.html', 'templates/**/*'],
         port: 8080,
         open: true,
         hot: true,
+        liveReload: true, // обновление при изменении HTML
         historyApiFallback: true, // 👈 SPA-режим (чтобы #/signup работал)
         client: {
             overlay: true,
@@ -44,6 +54,9 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: 'css/[name].css',
         }),
+
+        // Плагин для production только
+        ...(isDev ? [] : [new MiniCssExtractPlugin({ filename: 'css/[name].css' })]),
 
         // Копируем шаблоны и статику
         new CopyPlugin({
@@ -64,7 +77,7 @@ module.exports = {
             {
                 test: /\.scss$/,
                 use: [
-                    MiniCssExtractPlugin.loader,
+                    isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
                     'css-loader',
                     {
                         loader: 'postcss-loader',

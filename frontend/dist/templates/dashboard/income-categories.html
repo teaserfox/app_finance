@@ -1,0 +1,48 @@
+<div class="container p-0 mt-9">
+  <div class="mb-4 title">Доходы</div>
+
+  <div
+          id="income-categories-container"
+          class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
+  >
+    <!-- Карточки категорий будут рендериться динамически через JS -->
+  </div>
+</div>
+
+<!-- Модалка подтверждения удаления -->
+<div
+        class="modal fade"
+        id="confirmModal"
+        tabindex="-1"
+        aria-labelledby="confirmModalLabel"
+        aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="confirmModalLabel">Подтверждение удаления</h5>
+        <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Закрыть"
+        ></button>
+      </div>
+      <div class="modal-body fs-5 text-center">
+        Вы уверены, что хотите удалить эту категорию?
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button
+                type="button"
+                class="btn btn-outline-secondary px-4"
+                data-bs-dismiss="modal"
+        >
+          Отмена
+        </button>
+        <button type="button" id="confirmDeleteBtn" class="btn btn-danger px-4">
+          Удалить
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

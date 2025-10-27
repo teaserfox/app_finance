@@ -3,13 +3,6 @@
 @import "bootstrap/scss/variables";
 @import "bootstrap/scss/maps";
 
-//$theme-colors: map.merge(
-//                $theme-colors,
-//                (
-//                        "menu": #052C65,
-//                )
-//);
-
 $spacers: map.merge(
                 $spacers,
                 (
@@ -31,14 +24,11 @@ $position-values: (
 
 @import "bootstrap/scss/bootstrap";
 
-
-
-body {
-
-}
-
 $color-menu: #052C65;
 $color-input: #6C757D;
+$color-body: #F5F5F5;
+$color-card-title: #290661;
+
 
 @mixin font {
   font-family: 'Roboto', sans-serif;
@@ -59,7 +49,6 @@ li, .menu {
   color: $color-menu;
   font-weight: 500;
 }
-
 
 .nav-link .menu,
 .nav-link .text-white,
@@ -122,8 +111,32 @@ li, .menu {
 }
 
 
+.card-title {
+  @include font;
+  color: $color-card-title;
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 33px;
+}
 
+.btn-category {
+  @include font;
+  font-weight: 500;
+}
 
+.card-custom {
+  width: 352px;
+  margin-right: 20px;
+  margin-bottom: 20px;
+}
+
+.delete {
+  @include font;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 23px;
+  color: $color-card-title
+}
 
 
 
