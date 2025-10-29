@@ -18,9 +18,7 @@
 import {Auth} from "@/services/auth.js";
 import {Form} from "@/js/form.js";
 import {Sidebar} from "@/js/sidebar.js";
-import {IncomeCategoriesPage} from "@/income/categories.js";
-import {IncomeCategoryForm} from "@/income/income-category-form.js";
-import {IncomeCategoryEditPage} from "@/income/income-category-edit.js";
+import {CategoriesPage} from "@/pages/categories.js";
 
 
 export class Router {
@@ -59,24 +57,17 @@ export class Router {
                 template: 'dashboard/categories.html',
                 protected: true,
                 name: 'categories',
-                load: (router) => {
-                    const paramsString = window.location.hash.split('?')[1] || '';
-                    const params = new URLSearchParams(paramsString);
-                    const type = params.get('type') || 'income';
-                    console.log(type);
-                    new IncomeCategoriesPage(router, type);
-                }
+                load: (router) => new CategoriesPage(router)
             },
             {
                 path: '#/dashboard/category-form',
                 template: 'dashboard/income-category-form.html',
                 protected: true,
                 name: 'category-form',
-                load: (router) => {
-                    // берем тип из query
+                load: (router, container) => {
                     const params = new URLSearchParams(window.location.hash.split('?')[1]);
                     const type = params.get('type') || 'income';
-                    new IncomeCategoryForm(router, type);
+                    new CategoriesPage(router, type); // элементы уже в DOM
                 }
             },
             {
@@ -84,11 +75,11 @@ export class Router {
                 template: 'dashboard/income-category-edit.html',
                 protected: true,
                 name: 'category-edit',
-                load: (router) => {
+                load: (router, container) => {
                     const params = new URLSearchParams(window.location.hash.split('?')[1]);
                     const type = params.get('type') || 'income';
                     const id = params.get('id');
-                    new IncomeCategoryEditPage(router, type, id);
+                    new CategoriesPage(router, type, id); // элементы уже в DOM
                 }
             },
         ];
@@ -224,21 +215,16 @@ export class Router {
             return this.loadNotFound();
         }
 
-        try {
-            const html = await res.text();
-            this.appContainer.innerHTML = html;
+        const html = await res.text();
+        this.appContainer.innerHTML = html;
 
-            // --- Вызов user-defined load() если есть ---
-            if (typeof route.load === 'function') {
-                const maybePromise = route.load(this, this.appContainer);
-                if (maybePromise instanceof Promise) await maybePromise;
-            }
-
-        } catch (err) {
-            console.warn('⚠️ Ошибка при инициализации контента страницы:', templatePath, err);
-            return this.loadNotFound();
+        // --- Вызов user-defined load() после вставки шаблона ---
+        if (typeof route.load === 'function') {
+            // передаем appContainer, чтобы элементы уже были в DOM
+            await route.load(this, this.appContainer);
         }
     }
+
     /**
      * Загрузка страницы 404
      */
