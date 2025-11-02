@@ -16,11 +16,33 @@ export class Sidebar {
 
         this.init();
         this.initLogout();
-        SessionManager.initUserUI();
         this.highlightCurrentRoute();
 
         // Инициализация баланса
         this.balanceUI = new BalanceUI();
+
+        // Инициализация UI текущего пользователя
+        this.userDiv = document.getElementById('user');
+        this.updateUserUI(SessionManager.getCurrentUser());
+
+        // Подписка на смену пользователя
+        SessionManager.subscribe((user) => {
+            this.updateUserUI(user);
+        });
+    }
+
+    /** Обновление имени пользователя в сайдбаре */
+    updateUserUI(user) {
+        if (this.userDiv) {
+            if (user?.fullName) {
+                this.userDiv.textContent = user.fullName;
+                console.log(`👤 Текущий пользователь: ${user.fullName}`);
+            } else {
+                this.userDiv.textContent = '';
+                console.warn('⚠️ Нет данных пользователя — перенаправляем на login');
+                this.router.navigate('#/login', { replace: true });
+            }
+        }
     }
 
     /** Инициализация выхода */
@@ -31,7 +53,6 @@ export class Sidebar {
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             await SessionManager.handleLogout();
-            SessionManager.initUserUI();
             this.router.navigate('#/login', { replace: true });
         });
     }
@@ -191,6 +212,7 @@ export class Sidebar {
         link.querySelectorAll('svg path').forEach(path => path.setAttribute('fill', '#052C65'));
     }
 }
+
 
 
 

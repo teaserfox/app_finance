@@ -6,6 +6,9 @@ console.log('%c✅ session-manager.js подключён!', 'color: green; font-
 
 export class SessionManager {
 
+    // 🔹 массив подписчиков на изменение текущего пользователя
+    static _subscribers = [];
+
     // === 🔒 Приватные методы для безопасного доступа к localStorage ===
     static _safeGet(key, fallback = null) {
         try {
@@ -31,6 +34,21 @@ export class SessionManager {
 
     static _saveUsers(users) {
         this._safeSet('users', users);
+    }
+
+    // 🔹 подписка на смену пользователя
+    static subscribe(callback) {
+        if (typeof callback === 'function') {
+            this._subscribers.push(callback);
+        }
+    }
+
+    // 🔹 уведомление всех подписчиков о смене пользователя
+    static _notify() {
+        this._subscribers.forEach(cb => {
+            try { cb(this.getCurrentUser()); }
+            catch (err) { console.error('Ошибка в subscriber callback:', err); }
+        });
     }
 
     // === 🚪 Выход пользователя ===
@@ -72,6 +90,9 @@ export class SessionManager {
             localStorage.removeItem(Auth.userInfoKey);
             localStorage.removeItem('currentUserId');
 
+            // 🔹 уведомляем подписчиков о выходе
+            this._notify();
+
             navigate('/login');
             console.log(`👋 ${userInfo.fullName || 'Пользователь'} вышел из системы`);
 
@@ -104,6 +125,9 @@ export class SessionManager {
         this._safeSet(Auth.userInfoKey, userInfo);
 
         console.log(`✅ Активен пользователь: ${userInfo.fullName}`);
+
+        // 🔹 уведомляем подписчиков о смене пользователя
+        this._notify();
     }
 
     // === 📋 Все пользователи ===
@@ -139,5 +163,6 @@ export class SessionManager {
         return userDiv;
     }
 }
+
 
 
