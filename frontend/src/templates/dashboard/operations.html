@@ -1,0 +1,110 @@
+<div class="container p-0 mt-9">
+    <div class="mb-6 title">Доходы и расходы</div>
+
+    <div class="mb-6">
+        <button class="btn btn-sm btn-success me-13 edit-btn px-3 py-10 btn-category" data-id="${cat.id}">Создать доход</button>
+        <button class="btn btn-sm btn-danger edit-btn px-3 py-10 btn-category" data-id="${cat.id}">Создать расход</button>
+    </div>
+
+    <div class="btn-group mb-6" role="group">
+        <button class="btn btn-filter border rounded-1 me-7 py-13 active-filter">Сегодня</button>
+        <button class="btn btn-filter border rounded-1 me-7 py-13">Неделя</button>
+        <button class="btn btn-filter border rounded-1 me-7 py-13">Месяц</button>
+        <button class="btn btn-filter border rounded-1 me-7 py-13">Год</button>
+        <button class="btn btn-filter border rounded-1 me-7 py-13">Все</button>
+        <button class="btn btn-filter border rounded-1 me-13 py-13">Интервал</button>
+        <span class="align-self-center ms-2 text-filter me-13">с</span>
+        <input type="date" class="form-control form-control-sm ms-2 me-13 btn-filter" style="width: 160px;">
+        <span class="align-self-center ms-2 text-filter me-13">по</span>
+        <input type="date" class="form-control form-control-sm ms-2 btn-filter" style="width: 160px;">
+    </div>
+
+    <table class="table align-middle">
+        <thead>
+        <hr class="m-0">
+        <tr>
+            <th class="tr-text">№ операции</th>
+            <th class="tr-text">Тип</th>
+            <th class="tr-text">Категория</th>
+            <th class="tr-text">Сумма</th>
+            <th class="tr-text">Дата</th>
+            <th class="tr-text">Комментарий</th>
+            <th class="tr-text"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="td-title p-0">1</td>
+            <td class="text-income">доход</td>
+            <td class="td-text">зарплата</td>
+            <td class="td-text">500$</td>
+            <td class="td-text">11.09.2022</td>
+            <td class="td-text"></td>
+            <td class="td-btn">
+                <button class="btn">
+                    <svg width="13" height="15" viewBox="0 0 13 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 5.5C4.27614 5.5 4.5 5.72386 4.5 6V12C4.5 12.2761 4.27614 12.5 4 12.5C3.72386 12.5 3.5 12.2761 3.5 12V6C3.5 5.72386 3.72386 5.5 4 5.5Z" fill="black"/>
+                        <path d="M6.5 5.5C6.77614 5.5 7 5.72386 7 6V12C7 12.2761 6.77614 12.5 6.5 12.5C6.22386 12.5 6 12.2761 6 12V6C6 5.72386 6.22386 5.5 6.5 5.5Z" fill="black"/>
+                        <path d="M9.5 6C9.5 5.72386 9.27614 5.5 9 5.5C8.72386 5.5 8.5 5.72386 8.5 6V12C8.5 12.2761 8.72386 12.5 9 12.5C9.27614 12.5 9.5 12.2761 9.5 12V6Z" fill="black"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M13 3C13 3.55228 12.5523 4 12 4H11.5V13C11.5 14.1046 10.6046 15 9.5 15H3.5C2.39543 15 1.5 14.1046 1.5 13V4H1C0.447715 4 0 3.55228 0 3V2C0 1.44772 0.447715 1 1 1H4.5C4.5 0.447715 4.94772 0 5.5 0H7.5C8.05229 0 8.5 0.447715 8.5 1H12C12.5523 1 13 1.44772 13 2V3ZM2.61803 4L2.5 4.05902V13C2.5 13.5523 2.94772 14 3.5 14H9.5C10.0523 14 10.5 13.5523 10.5 13V4.05902L10.382 4H2.61803ZM1 3V2H12V3H1Z" fill="black"/>
+                    </svg>
+                </button>
+                <button class="btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.1465 0.146447C12.3417 -0.0488155 12.6583 -0.0488155 12.8536 0.146447L15.8536 3.14645C16.0488 3.34171 16.0488 3.65829 15.8536 3.85355L5.85357 13.8536C5.80569 13.9014 5.74858 13.9391 5.68571 13.9642L0.68571 15.9642C0.500001 16.0385 0.287892 15.995 0.146461 15.8536C0.00502989 15.7121 -0.0385071 15.5 0.0357762 15.3143L2.03578 10.3143C2.06092 10.2514 2.09858 10.1943 2.14646 10.1464L12.1465 0.146447ZM11.2071 2.5L13.5 4.79289L14.7929 3.5L12.5 1.20711L11.2071 2.5ZM12.7929 5.5L10.5 3.20711L4.00001 9.70711V10H4.50001C4.77616 10 5.00001 10.2239 5.00001 10.5V11H5.50001C5.77616 11 6.00001 11.2239 6.00001 11.5V12H6.29291L12.7929 5.5ZM3.03167 10.6755L2.92614 10.781L1.39754 14.6025L5.21903 13.0739L5.32456 12.9683C5.13496 12.8973 5.00001 12.7144 5.00001 12.5V12H4.50001C4.22387 12 4.00001 11.7761 4.00001 11.5V11H3.50001C3.28561 11 3.10272 10.865 3.03167 10.6755Z" fill="black"/>
+                    </svg>
+                </button>
+            </td>
+        </tr>
+        <tr>
+            <td class="td-title p-0">2</td>
+            <td class="text-expense">расход</td>
+            <td class="td-text">жильё</td>
+            <td class="td-text">2 500$</td>
+            <td class="td-text">12.09.2022</td>
+            <td class="td-text"></td>
+            <td class="td-btn">
+                <button class="btn">
+                    <svg width="13" height="15" viewBox="0 0 13 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 5.5C4.27614 5.5 4.5 5.72386 4.5 6V12C4.5 12.2761 4.27614 12.5 4 12.5C3.72386 12.5 3.5 12.2761 3.5 12V6C3.5 5.72386 3.72386 5.5 4 5.5Z" fill="black"/>
+                        <path d="M6.5 5.5C6.77614 5.5 7 5.72386 7 6V12C7 12.2761 6.77614 12.5 6.5 12.5C6.22386 12.5 6 12.2761 6 12V6C6 5.72386 6.22386 5.5 6.5 5.5Z" fill="black"/>
+                        <path d="M9.5 6C9.5 5.72386 9.27614 5.5 9 5.5C8.72386 5.5 8.5 5.72386 8.5 6V12C8.5 12.2761 8.72386 12.5 9 12.5C9.27614 12.5 9.5 12.2761 9.5 12V6Z" fill="black"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M13 3C13 3.55228 12.5523 4 12 4H11.5V13C11.5 14.1046 10.6046 15 9.5 15H3.5C2.39543 15 1.5 14.1046 1.5 13V4H1C0.447715 4 0 3.55228 0 3V2C0 1.44772 0.447715 1 1 1H4.5C4.5 0.447715 4.94772 0 5.5 0H7.5C8.05229 0 8.5 0.447715 8.5 1H12C12.5523 1 13 1.44772 13 2V3ZM2.61803 4L2.5 4.05902V13C2.5 13.5523 2.94772 14 3.5 14H9.5C10.0523 14 10.5 13.5523 10.5 13V4.05902L10.382 4H2.61803ZM1 3V2H12V3H1Z" fill="black"/>
+                    </svg>
+                </button>
+                <button class="btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.1465 0.146447C12.3417 -0.0488155 12.6583 -0.0488155 12.8536 0.146447L15.8536 3.14645C16.0488 3.34171 16.0488 3.65829 15.8536 3.85355L5.85357 13.8536C5.80569 13.9014 5.74858 13.9391 5.68571 13.9642L0.68571 15.9642C0.500001 16.0385 0.287892 15.995 0.146461 15.8536C0.00502989 15.7121 -0.0385071 15.5 0.0357762 15.3143L2.03578 10.3143C2.06092 10.2514 2.09858 10.1943 2.14646 10.1464L12.1465 0.146447ZM11.2071 2.5L13.5 4.79289L14.7929 3.5L12.5 1.20711L11.2071 2.5ZM12.7929 5.5L10.5 3.20711L4.00001 9.70711V10H4.50001C4.77616 10 5.00001 10.2239 5.00001 10.5V11H5.50001C5.77616 11 6.00001 11.2239 6.00001 11.5V12H6.29291L12.7929 5.5ZM3.03167 10.6755L2.92614 10.781L1.39754 14.6025L5.21903 13.0739L5.32456 12.9683C5.13496 12.8973 5.00001 12.7144 5.00001 12.5V12H4.50001C4.22387 12 4.00001 11.7761 4.00001 11.5V11H3.50001C3.28561 11 3.10272 10.865 3.03167 10.6755Z" fill="black"/>
+                    </svg>
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Модалка подтверждения удаления -->
+<div
+        class="modal fade"
+        id="confirmModal"
+        tabindex="-1"
+        aria-labelledby="confirmModalLabel"
+        aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center delete">
+                Вы действительно хотите удалить категорию?
+                Связанные доходы останутся без категории.
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" id="confirmDeleteBtn" class="btn btn-success px-4">
+                    Да, удалить
+                </button>
+                <button type="button" class="btn btn-danger px-4" data-bs-dismiss="modal">
+                    Не удалять
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

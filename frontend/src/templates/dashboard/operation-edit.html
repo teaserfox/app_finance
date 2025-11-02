@@ -1,0 +1,40 @@
+<div class="container p-0 mt-9">
+    <div class="mb-4 title" id="form-title">Создание категории дохода/расхода</div>
+
+    <form id="operationForm">
+        <!-- Тип операции: доход / расход -->
+        <div class="position-relative mb-10" style="height: 38px;">
+            <select class="form-control ps-8 py-12" id="type" name="type" required>
+                <!-- опции будут добавляться через JS -->
+            </select>
+            <label for="type" class="form-label"></label>
+        </div>
+
+        <div class="position-relative mb-10" style="height: 38px;">
+            <select class="form-control ps-8 py-12" id="category" name="category" required>
+                <!-- Опции категорий загружаются динамически из JS -->
+            </select>
+            <label for="category" class="form-label"></label>
+        </div>
+
+        <div class="position-relative mb-10" style="height: 38px;">
+            <input type="number" class="form-control ps-8 py-12" id="amount" name="amount" placeholder="Сумма в $..." required>
+            <label for="amount" class="form-label"></label>
+        </div>
+
+        <div class="position-relative mb-10" style="height: 38px;">
+            <input type="date" class="form-control ps-8 py-12" id="date" name="date" placeholder="Дата..." required>
+            <label for="date" class="form-label"></label>
+        </div>
+
+        <div class="position-relative mb-10" style="height: 38px;">
+            <input type="text" class="form-control ps-8 py-12" id="comment" name="comment" placeholder="Комментарий..." required>
+            <label for="comment" class="form-label"></label>
+        </div>
+
+        <div class="d-flex mt-13">
+            <button type="submit" class="btn btn-sm btn-success me-13 px-3 py-10">Сохранить</button>
+            <button type="button" id="cancelBtn"  class="btn btn-sm btn-danger px-3 py-10">Отмена</button>
+        </div>
+    </form>
+</div>

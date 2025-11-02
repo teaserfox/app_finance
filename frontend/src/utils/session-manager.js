@@ -1,5 +1,5 @@
 import { Auth } from '@/services/auth';
-import { navigate } from '@/router.js'; // 👈 новый импорт
+import { navigate } from '@/router.js';
 import config from '../../config/config.js';
 
 console.log('%c✅ session-manager.js подключён!', 'color: green; font-size: 16px;');
@@ -72,7 +72,7 @@ export class SessionManager {
             localStorage.removeItem(Auth.userInfoKey);
             localStorage.removeItem('currentUserId');
 
-            navigate('/login'); // 👈 заменили hash на navigate()
+            navigate('/login');
             console.log(`👋 ${userInfo.fullName || 'Пользователь'} вышел из системы`);
 
         } catch (err) {
@@ -118,6 +118,12 @@ export class SessionManager {
         return users.find(u => String(u.id) === String(id)) || null;
     }
 
+    // === 🧩 Получение ID текущего пользователя ===
+    static getUserId() {
+        const current = this.getCurrentUser();
+        return current?.id || null;
+    }
+
     // === 🧩 Инициализация UI ===
     static initUserUI() {
         const userDiv = document.getElementById('user');
@@ -128,9 +134,10 @@ export class SessionManager {
             console.log(`👤 Текущий пользователь: ${current.fullName}`);
         } else {
             console.warn('⚠️ Нет данных пользователя — перенаправляем на login');
-            navigate('/login'); // 👈 новый переход
+            navigate('/login');
         }
         return userDiv;
     }
 }
+
 

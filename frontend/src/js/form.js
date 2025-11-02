@@ -207,7 +207,7 @@ export class Form {
             email: result.user.email,
         });
 
-        this.router.navigate('#/sidebar');
+        this.router.navigate('#/dashboard/index');
     }
 }
 

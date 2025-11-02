@@ -19,6 +19,8 @@ import {Auth} from "@/services/auth.js";
 import {Form} from "@/js/form.js";
 import {Sidebar} from "@/js/sidebar.js";
 import {CategoriesPage} from "@/pages/categories.js";
+import {OperationsPage} from "@/pages/operations";
+import {IndexPage} from "@/pages";
 
 
 export class Router {
@@ -81,6 +83,34 @@ export class Router {
                     const id = params.get('id');
                     new CategoriesPage(router, type, id); // элементы уже в DOM
                 }
+            },
+            {
+                path: '#/dashboard/operations',
+                template: 'dashboard/operations.html',
+                protected: true,
+                name: 'operations',
+                load: (router) => new OperationsPage(router)
+            },
+            {
+                path: '#/dashboard/operation-form',
+                template: 'dashboard/operation-form.html',
+                protected: true,
+                name: 'operation-form',
+                load: (router) => new OperationsPage(router)
+            },
+            {
+                path: '#/dashboard/operation-edit',
+                template: 'dashboard/operation-edit.html',
+                protected: true,
+                name: 'operation-edit',
+                load: (router) => new OperationsPage(router)
+            },
+            {
+                path: '#/dashboard/index',
+                template: 'dashboard/index.html',
+                protected: true,
+                name: 'index',
+                load: (router) => new IndexPage(router)
             },
         ];
 

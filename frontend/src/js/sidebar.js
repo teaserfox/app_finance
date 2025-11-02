@@ -1,12 +1,11 @@
-
 import { SessionManager } from '@/utils/session-manager.js';
-import { routerInstance } from '@/router.js'; // ✅ Импортируем существующий экземпляр
-
+import { routerInstance } from '@/router.js';
+import { BalanceUI } from '@/js/balance.js'; // класс для работы с балансом
 
 console.log('%c✅ sidebar.js успешно подключён!', 'color: green; font-weight: bold;');
 
 export class Sidebar {
-    constructor(router = routerInstance)  {
+    constructor(router = routerInstance) {
         this.router = router;
         this.navLinks = document.querySelectorAll('.nav-link');
 
@@ -20,44 +19,39 @@ export class Sidebar {
         SessionManager.initUserUI();
         this.highlightCurrentRoute();
 
-        console.log('%c✅ Sidebar инициализирован', 'color: green; font-weight: bold;');
+        // Инициализация баланса
+        this.balanceUI = new BalanceUI();
     }
 
     /** Инициализация выхода */
     initLogout() {
         const logoutBtn = document.querySelector('.dropdown-item[href="#logout"]');
-        if (!logoutBtn) {
-            console.warn('⚠️ Кнопка выхода не найдена.');
-            return;
-        }
+        if (!logoutBtn) return;
 
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             await SessionManager.handleLogout();
             SessionManager.initUserUI();
-            this.router.navigate('#/login', {replace: true});
+            this.router.navigate('#/login', { replace: true });
         });
     }
 
-    /** Инициализация событий меню */
+    /** Инициализация кликов по меню */
     init() {
         this.navLinks.forEach(link => {
             link.addEventListener('click', e => this.handleClick(e, link));
         });
     }
 
-    /** Подсветка текущего маршрута при загрузке */
+    /** Подсветка текущего маршрута */
     highlightCurrentRoute() {
         const currentHash = window.location.hash;
         if (!currentHash) return;
 
         this.navLinks.forEach(link => {
             const href = link.getAttribute('href');
-            if (href === currentHash) {
-                this.activateLink(link);
-            } else {
-                this.deactivateLink(link);
-            }
+            if (href === currentHash) this.activateLink(link);
+            else this.deactivateLink(link);
         });
     }
 
@@ -68,26 +62,25 @@ export class Sidebar {
         const route = link.getAttribute('href');
         const linkText = link.querySelector('.menu, .text-white')?.textContent.trim();
 
-        // Переключение категорий
+        // Категории
         if (linkText === 'Категории') {
             this.toggleCategories(link);
             return;
         }
 
-        // Подкатегории (Доходы, Расходы)
+        // Подкатегории
         if (this.isInsideCategory(link)) {
             this.handleSubCategory(link);
         } else {
             this.handleRegularLink(link);
         }
 
-        // ✅ Навигация через роутер для всех ссылок с href="#/"
+        // Навигация через роутер
         if (this.router && route && route.startsWith('#/')) {
             this.router.navigate(route);
         }
     }
 
-    /** Проверяет, находится ли ссылка внутри блока "Категории" */
     isInsideCategory(link) {
         const parentLi = link.closest('.nav-item');
         const prev1 = parentLi?.previousElementSibling;
@@ -96,14 +89,35 @@ export class Sidebar {
         return getText(prev1) === 'Категории' || getText(prev2) === 'Категории';
     }
 
-    /** Раскрытие/сворачивание блока "Категории" */
     toggleCategories(link) {
         const svg = link.querySelector('svg path');
         const parentLi = link.closest('.nav-item');
-        const subLinks = [
+
+        let subLinks = [
             parentLi.nextElementSibling,
             parentLi.nextElementSibling?.nextElementSibling
         ].filter(Boolean);
+
+        if (subLinks.length === 0) {
+            const incomeLi = document.createElement('li');
+            incomeLi.className = 'nav-item d-none';
+            incomeLi.innerHTML = `<a class="nav-link" href="#"><div class="menu">Доходы</div></a>`;
+
+            const expenseLi = document.createElement('li');
+            expenseLi.className = 'nav-item d-none';
+            expenseLi.innerHTML = `<a class="nav-link" href="#"><div class="menu">Расходы</div></a>`;
+
+            parentLi.parentNode.insertBefore(incomeLi, parentLi.nextSibling);
+            parentLi.parentNode.insertBefore(expenseLi, incomeLi.nextSibling);
+
+            subLinks = [incomeLi, expenseLi];
+            subLinks.forEach(li => {
+                li.querySelector('a').addEventListener('click', e => {
+                    e.preventDefault();
+                    this.handleSubCategory(li.querySelector('a'));
+                });
+            });
+        }
 
         const isActive = link.classList.contains('active');
         this.resetTopLinksExceptCategories();
@@ -119,7 +133,6 @@ export class Sidebar {
         }
     }
 
-    /** Сброс активности у остальных пунктов верхнего уровня */
     resetTopLinksExceptCategories() {
         this.navLinks.forEach(link => {
             const text = link.querySelector('.menu, .text-white')?.textContent.trim();
@@ -127,7 +140,6 @@ export class Sidebar {
         });
     }
 
-    /** Подкатегории (Доходы, Расходы) */
     handleSubCategory(link) {
         const parentUl = link.closest('ul');
         const allItems = parentUl?.querySelectorAll('.nav-link') || [];
@@ -142,28 +154,21 @@ export class Sidebar {
             const txt = l.querySelector('.menu, .text-white')?.textContent.trim();
             return txt === 'Категории';
         });
-
         if (categoryLink) {
             this.activateLink(categoryLink, categoryLink.querySelector('svg path'));
             categoryLink.querySelector('svg').style.transform = 'rotate(90deg)';
         }
 
-        // ✅ Навигация на универсальную страницу с параметром type
         const subText = link.querySelector('.menu, .text-white')?.textContent.trim();
-        if (subText === 'Доходы') {
-            this.router.navigate('#/dashboard/categories?type=income');
-        } else if (subText === 'Расходы') {
-            this.router.navigate('#/dashboard/categories?type=expense');
-        }
+        if (subText === 'Доходы') this.router.navigate('#/dashboard/categories?type=income');
+        else if (subText === 'Расходы') this.router.navigate('#/dashboard/categories?type=expense');
     }
 
-    /** Обычные ссылки (Главная, Аналитика и т.д.) */
     handleRegularLink(link) {
         this.navLinks.forEach(l => this.deactivateLink(l));
         this.activateLink(link);
     }
 
-    /** Активирует ссылку */
     activateLink(link, svg) {
         const textDiv = link.querySelector('.menu, .text-white');
         link.classList.add('active');
@@ -175,7 +180,6 @@ export class Sidebar {
         link.querySelectorAll('svg path').forEach(path => path.setAttribute('fill', '#fff'));
     }
 
-    /** Деактивирует ссылку */
     deactivateLink(link, svg) {
         const textDiv = link.querySelector('.menu, .text-white');
         link.classList.remove('active');
@@ -187,6 +191,8 @@ export class Sidebar {
         link.querySelectorAll('svg path').forEach(path => path.setAttribute('fill', '#052C65'));
     }
 }
+
+
 
 
 

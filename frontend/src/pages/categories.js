@@ -32,8 +32,11 @@ export class CategoriesPage {
         return 'list';
     }
 
-    // === 📋 ЗАГРУЗКА СПИСКА КАТЕГОРИЙ ===
     async loadCategories() {
+        // Получаем актуальный тип из URL (на случай навигации по сайдбару)
+        const params = new URLSearchParams(window.location.hash.split('?')[1]);
+        this.type = params.get('type') || 'income';
+
         const titleEl = document.getElementById('category');
         if (titleEl) {
             titleEl.textContent = this.type === 'income' ? 'Доходы' : 'Расходы';
@@ -50,6 +53,7 @@ export class CategoriesPage {
             alert('Ошибка загрузки категорий');
         }
     }
+
 
     // === 🧱 ОТРИСОВКА СПИСКА ===
     renderCategories() {

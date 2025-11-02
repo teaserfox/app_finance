@@ -1,0 +1,30 @@
+<div class="container p-0 mt-9">
+    <div class="mb-6 title">Главная</div>
+
+    <div class="btn-group btn-group-index" role="group">
+        <button class="btn btn-filter border rounded-1 me-7 py-13 active-filter">Сегодня</button>
+        <button class="btn btn-filter border rounded-1 me-7 py-13">Неделя</button>
+        <button class="btn btn-filter border rounded-1 me-7 py-13">Месяц</button>
+        <button class="btn btn-filter border rounded-1 me-7 py-13">Год</button>
+        <button class="btn btn-filter border rounded-1 me-7 py-13">Все</button>
+        <button class="btn btn-filter border rounded-1 me-13 py-13">Интервал</button>
+        <span class="align-self-center ms-2 text-filter me-13">с</span>
+        <input type="date" class="form-control form-control-sm ms-2 me-13 btn-filter" style="width: 160px;">
+        <span class="align-self-center ms-2 text-filter me-13">по</span>
+        <input type="date" class="form-control form-control-sm ms-2 btn-filter" style="width: 160px;">
+    </div>
+
+    <!-- Диаграммы -->
+    <div class="d-flex align-content-center justify-content-evenly">
+        <div class="d-flex flex-column justify-content-center align-items-center">
+            <h4 class="title text-center mb-7">Доходы</h4>
+            <canvas id="incomeChart"></canvas>
+        </div>
+        <div style="border-left: 1px solid #ccc;"></div>
+        <div class="d-flex flex-column justify-content-center align-items-center">
+            <h4 class="title text-center mb-7">Расходы</h4>
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+</div>
+
