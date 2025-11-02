@@ -55,12 +55,22 @@ export class OperationsPage {
     }
 
     // === 🧾 ЗАГРУЗКА ОПЕРАЦИЙ ===
-    async loadOperations(period = 'all') {
+    async loadOperations(period = 'all', dateFrom = null, dateTo = null) {
         try {
-            const response = await CustomHttp.request(`${config.host}/operations?period=${period}`);
+            let url = `${config.host}/operations?period=${period}`;
+
+            // 🔹 если выбран интервал — добавляем параметры
+            if (period === 'interval' && dateFrom && dateTo) {
+                url += `&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+            }
+
+            const response = await CustomHttp.request(url);
             if (!response || response.error) throw new Error(response?.message || 'Ошибка загрузки операций');
 
-            this.operations = response.map(op => Object.assign({}, op, { __parsedDate: new Date(op.date) }));
+            this.operations = response.map(op => ({
+                ...op,
+                __parsedDate: new Date(op.date)
+            }));
 
             const sorted = this.operations.slice().sort((a, b) => b.__parsedDate - a.__parsedDate);
             this.renderOperations(sorted);
@@ -69,6 +79,7 @@ export class OperationsPage {
             alert('Ошибка при загрузке операций');
         }
     }
+
 
     renderOperations(ops = null) {
         if (!this.tableBody) return;
@@ -124,9 +135,46 @@ export class OperationsPage {
                 const rawText = (e.target.dataset.period || e.target.textContent || '').trim().toLowerCase();
                 const periodKey = this._mapButtonTextToKey(rawText);
                 const backendPeriod = this._mapKeyToBackendPeriod(periodKey);
-                await this.loadOperations(backendPeriod);
+
+                // 🔹 обработка интервала
+                if (backendPeriod === 'interval') {
+                    const dateFromInput = document.getElementById('dateFrom');
+                    const dateToInput = document.getElementById('dateTo');
+                    const dateFrom = dateFromInput?.value;
+                    const dateTo = dateToInput?.value;
+
+                    if (!dateFrom || !dateTo) {
+                        alert('Выберите обе даты для интервала');
+                        return;
+                    }
+
+                    await this.loadOperations(backendPeriod, dateFrom, dateTo);
+                } else {
+                    await this.loadOperations(backendPeriod);
+                }
             });
         });
+
+        // 🔹 НАЧАЛО: блок disable interval
+        const dateFromInput = document.getElementById('dateFrom');
+        const dateToInput = document.getElementById('dateTo');
+        const intervalBtn = document.querySelector('button[data-period="interval"]');
+
+        function checkIntervalDates() {
+            if (dateFromInput.value && dateToInput.value) {
+                intervalBtn.disabled = false;
+                intervalBtn.classList.remove('disabled');
+            } else {
+                intervalBtn.disabled = true;
+                intervalBtn.classList.add('disabled');
+            }
+        }
+
+        dateFromInput.addEventListener('input', checkIntervalDates);
+        dateToInput.addEventListener('input', checkIntervalDates);
+        checkIntervalDates(); // проверка сразу при загрузке страницы
+        // 🔹 КОНЕЦ: блок disable interval
+
     }
 
     addRowEventListeners() {
@@ -308,9 +356,10 @@ export class OperationsPage {
         if (!text) return 'all';
         const t = text.trim().toLowerCase();
         if (t.includes('сегодня') || t === 'today') return 'today';
-        if (t.includes('недел') || t === 'week') return 'week';
+        if (t.includes('неделя') || t === 'week') return 'week';
         if (t.includes('месяц') || t === 'month') return 'month';
         if (t.includes('год') || t === 'year') return 'year';
+        if (t.includes('интервал') || t === 'interval') return 'interval';
         if (t.includes('все') || t === 'all') return 'all';
         return 'all';
     }
@@ -322,7 +371,8 @@ export class OperationsPage {
             case 'month': return 'month';
             case 'year': return 'year';
             case 'all': return 'all';
-            default: return 'all';
+            case 'interval': return 'interval';
+            default: return 'today';
         }
     }
 }
