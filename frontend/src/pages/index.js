@@ -1,7 +1,7 @@
-import { Chart, PieController, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Chart } from 'chart.js/auto';
 import { OperationsService } from '@/services/operations-service.js';
 
-Chart.register(PieController, ArcElement, Tooltip, Legend);
+// Chart.register(PieController, ArcElement, Tooltip, Legend);
 
 export class IndexPage {
     constructor() {
