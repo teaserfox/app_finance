@@ -1,7 +1,7 @@
 import config from "@/config/config";
 import { Auth } from "@/services/auth";
 import {LoginResponse, User} from "@/types/token-user-login.type";
-import { CustomHttp, HttpError } from "@/services/custom-http";
+import {CustomHttp, HttpError} from "@/services/custom-http";
 import { SessionManager } from "@/utils/session-manager";
 import { Router } from "@/router";
 import {FormType} from "@/types/form.type";
@@ -45,40 +45,40 @@ export class Form {
     }
 
     private initLinks(): void {
-        this.container.querySelectorAll('[data-link]').forEach(link => {
+        this.container.querySelectorAll('[data-link]').forEach((link: Element): void => {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                const href = link.getAttribute('href');
+                const href: string | null = link.getAttribute('href');
                 if (href) this.router.navigate(href);
             });
         });
     }
 
     private initFields(): void {
-        this.fields.forEach(field => {
-            const element = this.container.querySelector<HTMLInputElement>(`#${field.id}`);
+        this.fields.forEach((field: FormType): void => {
+            const element: HTMLInputElement | null = this.container.querySelector<HTMLInputElement>(`#${field.id}`);
             if (!element) {
                 console.warn(`⚠️ Поле #${field.id} не найдено!`);
                 field.element = null;
                 return;
             }
             field.element = element;
-            element.addEventListener('input', () => this.validateField(field));
+            element.addEventListener('input', (): void => this.validateField(field));
         });
     }
 
     private initButton(): void {
         this.processButton = this.container.querySelector<HTMLButtonElement>('#process');
         if (!this.processButton) return;
-        this.processButton.addEventListener('click', () => this.processForm());
+        this.processButton.addEventListener('click', (): Promise<void> => this.processForm());
     }
 
     private validateField(field: FormType): void {
         if (!field.element) return;
-        const value = field.element.value.trim();
+        const value: string = field.element.value.trim();
 
         if (field.name === 'passwordRepeat') {
-            const passField = this.fields.find(f => f.name === 'password');
+            const passField: FormType | undefined = this.fields.find((f: FormType): boolean => f.name === 'password');
             field.valid = Boolean(value && passField?.element?.value === value && passField?.valid);
         } else if (field.regex) {
             field.valid = field.regex.test(value);
@@ -98,7 +98,7 @@ export class Form {
     }
 
     private getValue(name: string): string {
-        return this.fields.find(f => f.name === name)?.element?.value.trim() ?? '';
+        return this.fields.find((f: FormType): boolean => f.name === name)?.element?.value.trim() ?? '';
     }
 
     private showError(message: string): void {
@@ -109,9 +109,9 @@ export class Form {
     private async processForm(): Promise<void> {
         if (!this.validateForm()) return;
 
-        const email = this.getValue('email');
-        const password = this.getValue('password');
-        const rememberMe = this.container.querySelector<HTMLInputElement>('#flexCheckDefault')?.checked;
+        const email: string = this.getValue('email');
+        const password: string = this.getValue('password');
+        const rememberMe: boolean | undefined = this.container.querySelector<HTMLInputElement>('#flexCheckDefault')?.checked;
 
         try {
             if (this.page === 'signup') {
@@ -125,7 +125,7 @@ export class Form {
     }
 
     private async handleSignup(email: string, password: string): Promise<void> {
-        const result = await CustomHttp.request<LoginResponse>(`${config.host}/signup`, 'POST', {
+        const result: LoginResponse | HttpError = await CustomHttp.request<LoginResponse>(`${config.host}/signup`, 'POST', {
             name: this.getValue('name'),
             lastName: this.getValue('lastName'),
             email,
@@ -142,7 +142,7 @@ export class Form {
 
     private async handleLogin(email: string, password: string, rememberMe: boolean): Promise<void> {
         // Запрос на сервер
-        const result = await CustomHttp.request<LoginResponse>(
+        const result: LoginResponse | HttpError = await CustomHttp.request<LoginResponse>(
             `${config.host}/login`,
             'POST',
             { email, password }
@@ -173,7 +173,6 @@ export class Form {
         // Навигация
         this.router.navigate('#/dashboard/index');
     }
-
 
 }
 
