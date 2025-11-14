@@ -29,13 +29,14 @@ export class Sidebar {
         this.highlightCurrentRoute();
         this.updateUserUI(SessionManager.getCurrentUser());
 
-        SessionManager.subscribe((user: StoredUserType | null) => {
+        SessionManager.subscribe((user: StoredUserType | null): void => {
             this.updateUserUI(user);
         });
-        this.updateBalance();
+
+        void this.updateBalance();
     }
 
-    private async updateBalance() {
+    private async updateBalance(): Promise<void> {
         if (!this.balanceUI) return;
         try {
             await this.balanceUI.updateUserBalance();
@@ -46,7 +47,7 @@ export class Sidebar {
     }
 
     /** Обновление имени пользователя в сайдбаре */
-    updateUserUI(user: StoredUserType | null): void {
+    private updateUserUI(user: StoredUserType | null): void {
         if (this.userDiv) {
             if (user?.fullName) {
                 this.userDiv.textContent = user.fullName;
@@ -60,11 +61,11 @@ export class Sidebar {
     }
 
     /** Инициализация выхода */
-    initLogout(): void {
-        const logoutBtn = document.querySelector<HTMLAnchorElement>('.dropdown-item[href="#logout"]');
+    private initLogout(): void {
+        const logoutBtn: HTMLAnchorElement | null = document.querySelector<HTMLAnchorElement>('.dropdown-item[href="#logout"]');
         if (!logoutBtn) return;
 
-        logoutBtn.addEventListener('click', async (e: Event) => {
+        logoutBtn.addEventListener('click', async (e: Event): Promise<void> => {
             e.preventDefault();
             await SessionManager.handleLogout();
             this.router.navigate('#/login', { replace: true });
@@ -72,29 +73,29 @@ export class Sidebar {
     }
 
     /** Инициализация кликов по меню */
-    init(): void {
-        this.navLinks.forEach(link => {
-            link.addEventListener('click', e => this.handleClick(e, link));
+    private init(): void {
+        this.navLinks.forEach((link: HTMLAnchorElement): void => {
+            link.addEventListener('click', (e: PointerEvent): void => this.handleClick(e, link));
         });
     }
 
     /** Подсветка текущего маршрута */
-    highlightCurrentRoute(): void {
-        const currentHash = window.location.hash;
+    private highlightCurrentRoute(): void {
+        const currentHash: string = window.location.hash;
         if (!currentHash) return;
 
-        this.navLinks.forEach(link => {
-            const href = link.getAttribute('href');
+        this.navLinks.forEach((link: HTMLAnchorElement): void => {
+            const href: string | null = link.getAttribute('href');
             if (href === currentHash) this.activateLink(link);
             else this.deactivateLink(link);
         });
     }
 
-    handleClick(e: Event, link: HTMLAnchorElement): void {
+    private handleClick(e: Event, link: HTMLAnchorElement): void {
         e.preventDefault();
 
-        const route = link.getAttribute('href');
-        const linkText = link.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
+        const route: string | null = link.getAttribute('href');
+        const linkText: string | undefined = link.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
 
         if (linkText === 'Категории') {
             this.toggleCategories(link);
@@ -112,30 +113,30 @@ export class Sidebar {
         }
     }
 
-    isInsideCategory(link: HTMLAnchorElement): boolean {
-        const parentLi = link.closest<HTMLLIElement>('.nav-item');
+    private isInsideCategory(link: HTMLAnchorElement): boolean {
+        const parentLi: HTMLElement | null = link.closest<HTMLLIElement>('.nav-item');
         const prev1 = parentLi?.previousElementSibling as HTMLLIElement | null;
         const prev2 = prev1?.previousElementSibling as HTMLLIElement | null;
-        const getText = (li: HTMLLIElement | null) => li?.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
+        const getText = (li: HTMLLIElement | null): string | undefined => li?.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
         return getText(prev1) === 'Категории' || getText(prev2) === 'Категории';
     }
 
-    toggleCategories(link: HTMLAnchorElement): void {
-        const svg = link.querySelector<SVGPathElement>('svg path');
-        const parentLi = link.closest<HTMLLIElement>('.nav-item');
+    private toggleCategories(link: HTMLAnchorElement): void {
+        const svg: SVGPathElement | null = link.querySelector<SVGPathElement>('svg path');
+        const parentLi: HTMLElement | null = link.closest<HTMLLIElement>('.nav-item');
         if (!parentLi) return;
 
         let subLinks: HTMLLIElement[] = [
             parentLi.nextElementSibling as HTMLLIElement | null,
             parentLi.nextElementSibling?.nextElementSibling as HTMLLIElement | null
-        ].filter((el): el is HTMLLIElement => !!el);
+        ].filter((el: HTMLLIElement | null): el is HTMLLIElement => !!el);
 
         if (!subLinks.length) {
-            const incomeLi = document.createElement('li');
+            const incomeLi: HTMLLIElement = document.createElement('li');
             incomeLi.className = 'nav-item d-none';
             incomeLi.innerHTML = `<a class="nav-link" href="#"><div class="menu">Доходы</div></a>`;
 
-            const expenseLi = document.createElement('li');
+            const expenseLi: HTMLLIElement = document.createElement('li');
             expenseLi.className = 'nav-item d-none';
             expenseLi.innerHTML = `<a class="nav-link" href="#"><div class="menu">Расходы</div></a>`;
 
@@ -144,10 +145,10 @@ export class Sidebar {
 
             subLinks = [incomeLi, expenseLi];
 
-            subLinks.forEach(li => {
-                const a = li.querySelector<HTMLAnchorElement>('a');
+            subLinks.forEach((li: HTMLLIElement): void => {
+                const a: HTMLAnchorElement | null = li.querySelector<HTMLAnchorElement>('a');
                 if (a) {
-                    a.addEventListener('click', e => {
+                    a.addEventListener('click', (e: PointerEvent): void => {
                         e.preventDefault();
                         this.handleSubCategory(a);
                     });
@@ -155,78 +156,78 @@ export class Sidebar {
             });
         }
 
-        const isActive = link.classList.contains('active');
+        const isActive: boolean = link.classList.contains('active');
         this.resetTopLinksExceptCategories();
 
-        const svgPath = link.querySelector<SVGPathElement>('svg path') ?? undefined;
-        const svgEl = link.querySelector<SVGElement>('svg');
+        const svgPath: SVGPathElement | undefined = link.querySelector<SVGPathElement>('svg path') ?? undefined;
+        const svgEl: SVGElement | null = link.querySelector<SVGElement>('svg');
 
         if (!isActive) {
             this.activateLink(link, svgPath);
             if (svgEl) svgEl.style.transform = 'rotate(90deg)';
-            subLinks.forEach(li => li.classList.remove('d-none'));
+            subLinks.forEach((li: HTMLLIElement): void => li.classList.remove('d-none'));
         } else {
             this.deactivateLink(link, svgPath);
             if (svgEl) svgEl.style.transform = '';
-            subLinks.forEach(li => li.classList.add('d-none'));
+            subLinks.forEach((li: HTMLLIElement):void => li.classList.add('d-none'));
         }
     }
 
-    resetTopLinksExceptCategories(): void {
-        this.navLinks.forEach(link => {
-            const text = link.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
+    private resetTopLinksExceptCategories(): void {
+        this.navLinks.forEach((link: HTMLAnchorElement): void => {
+            const text: string | undefined = link.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
             if (text !== 'Категории') this.deactivateLink(link);
         });
     }
 
-    handleSubCategory(link: HTMLAnchorElement): void {
-        const parentUl = link.closest<HTMLUListElement>('ul');
+    private handleSubCategory(link: HTMLAnchorElement): void {
+        const parentUl: HTMLUListElement | null = link.closest<HTMLUListElement>('ul');
         const allItems = parentUl?.querySelectorAll<HTMLAnchorElement>('.nav-link') || [];
-        allItems.forEach(l => {
-            const txt = l.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
+        allItems.forEach((l: HTMLAnchorElement): void => {
+            const txt: string | undefined = l.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
             if (txt === 'Доходы' || txt === 'Расходы') this.deactivateLink(l);
         });
 
         this.activateLink(link);
 
-        const categoryLink = Array.from(this.navLinks).find(l => {
-            const txt = l.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
+        const categoryLink: HTMLAnchorElement | undefined = Array.from(this.navLinks).find((l: HTMLAnchorElement): boolean => {
+            const txt: string | undefined = l.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
             return txt === 'Категории';
         });
 
         if (categoryLink) {
-            const svgPath = categoryLink.querySelector<SVGPathElement>('svg path') ?? undefined;
+            const svgPath: SVGPathElement | undefined = categoryLink.querySelector<SVGPathElement>('svg path') ?? undefined;
             this.activateLink(categoryLink, svgPath);
 
-            const svgElement = categoryLink.querySelector<SVGElement>('svg');
+            const svgElement: SVGElement | null = categoryLink.querySelector<SVGElement>('svg');
             if (svgElement) {
                 svgElement.style.transform = 'rotate(90deg)';
             }
         }
 
-        const subText = link.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
+        const subText: string | undefined = link.querySelector<HTMLElement>('.menu, .text-white')?.textContent?.trim();
         if (subText === 'Доходы') this.router.navigate('#/dashboard/categories?type=income');
         else if (subText === 'Расходы') this.router.navigate('#/dashboard/categories?type=expense');
     }
 
-    handleRegularLink(link: HTMLAnchorElement): void {
-        this.navLinks.forEach(l => this.deactivateLink(l));
+    private handleRegularLink(link: HTMLAnchorElement): void {
+        this.navLinks.forEach((l: HTMLAnchorElement): void => this.deactivateLink(l));
         this.activateLink(link);
     }
 
-    activateLink(link: HTMLAnchorElement, svg?: SVGPathElement): void {
-        const textDiv = link.querySelector<HTMLElement>('.menu, .text-white');
+    private activateLink(link: HTMLAnchorElement, svg?: SVGPathElement): void {
+        const textDiv: HTMLElement | null = link.querySelector<HTMLElement>('.menu, .text-white');
         link.classList.add('active');
         if (textDiv) {
             textDiv.classList.remove('menu');
             textDiv.classList.add('text-white');
         }
         if (svg) svg.setAttribute('fill', '#fff');
-        link.querySelectorAll<SVGPathElement>('svg path').forEach(path => path.setAttribute('fill', '#fff'));
+        link.querySelectorAll<SVGPathElement>('svg path').forEach((path: SVGPathElement): void => path.setAttribute('fill', '#fff'));
     }
 
-    deactivateLink(link: HTMLAnchorElement, svg?: SVGPathElement): void {
-        const textDiv = link.querySelector<HTMLElement>('.menu, .text-white');
+    private deactivateLink(link: HTMLAnchorElement, svg?: SVGPathElement): void {
+        const textDiv: HTMLElement | null = link.querySelector<HTMLElement>('.menu, .text-white');
         link.classList.remove('active');
         if (textDiv) {
             textDiv.classList.remove('text-white');

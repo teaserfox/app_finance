@@ -14,10 +14,10 @@ export class BalanceUI {
         this.userId = SessionManager.getUserId();
 
         if (!this.balanceEl || !this.userId) return;
-        this.updateUserBalance();
+        void this.updateUserBalance();
     }
 
-    async updateUserBalance(): Promise<void> {
+    public async updateUserBalance(): Promise<void> {
         if (!this.balanceEl || !this.userId) return;
 
         console.log('Updating user balance...');
