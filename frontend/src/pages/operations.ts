@@ -89,24 +89,84 @@ export class OperationsPage {
 
     public async loadOperations(period: string = 'all', dateFrom: string | null = null, dateTo: string | null = null): Promise<void> {
         try {
-            let url = `${config.host}/operations?period=${period}`;
-            if (period === 'interval' && dateFrom && dateTo) {
-                url += `&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+            console.log("📥 Загружаем ВСЕ операции с бэка…");
+
+            // Всегда грузим всё
+            const response = await CustomHttp.request<Operation[] | { error: boolean; message: string }>
+            (
+                `${config.host}/operations?period=all`
+            );
+
+
+            if ((response as any).error) {
+                throw new Error((response as any).message || 'Ошибка загрузки операций');
             }
 
-            const response = await CustomHttp.request(url) as Operation[] | { error: boolean; message: string };
-            if ((response as any).error) throw new Error((response as any).message || 'Ошибка загрузки операций');
+            // Все операции пользователя
+            const allOps = response as Operation[];
 
-            const ops = response as Operation[];
-            this.operations = ops.map(op => ({ ...op, __parsedDate: new Date(op.date) }));
+            // Парсим дату
+            this.operations = allOps.map(op => ({
+                ...op,
+                __parsedDate: new Date(op.date)
+            }));
 
-            const sorted = this.operations.slice().sort((a, b) => (b.__parsedDate?.getTime() || 0) - (a.__parsedDate?.getTime() || 0));
+            let filtered = this.operations.slice();
+
+            // ---- ФРОНТОВАЯ фильтрация ----
+
+            const now = new Date();
+
+            if (period === "today") {
+                filtered = filtered.filter(op =>
+                    op.__parsedDate?.toDateString() === now.toDateString()
+                );
+            }
+
+            if (period === "week") {
+                const weekAgo = new Date();
+                weekAgo.setDate(now.getDate() - 7);
+                filtered = filtered.filter(op =>
+                    op.__parsedDate! >= weekAgo
+                );
+            }
+
+            if (period === "month") {
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                filtered = filtered.filter(op =>
+                    op.__parsedDate! >= firstDay
+                );
+            }
+
+            if (period === "year") {
+                const firstDay = new Date(now.getFullYear(), 0, 1);
+                filtered = filtered.filter(op =>
+                    op.__parsedDate! >= firstDay
+                );
+            }
+
+            if (period === "interval" && dateFrom && dateTo) {
+                const dFrom = new Date(dateFrom);
+                const dTo = new Date(dateTo);
+                filtered = filtered.filter(op =>
+                    op.__parsedDate! >= dFrom && op.__parsedDate! <= dTo
+                );
+            }
+
+            // ---- конец фильтра ----
+
+            const sorted = filtered.sort((a, b) =>
+                (b.__parsedDate?.getTime() || 0) - (a.__parsedDate?.getTime() || 0)
+            );
+
             this.renderOperations(sorted);
+
         } catch (err: any) {
             console.error('❌ Ошибка при загрузке операций:', err.message);
             alert('Ошибка при загрузке операций');
         }
     }
+
 
     private renderOperations(ops: Operation[] | null = null): void {
         if (!this.tableBody) return;

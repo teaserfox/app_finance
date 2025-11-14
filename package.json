@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "chart.js": "^4.5.1"
+  },
+  "devDependencies": {
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3"
   }
 }

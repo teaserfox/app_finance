@@ -1,4 +1,3 @@
-// Тип операции
 export type Operation = {
     id: number;
     userId: number;

@@ -1,28 +1,19 @@
 import { SessionManager } from "@/utils/session-manager";
 import { CustomHttp, HttpError } from "@/services/custom-http";
 import config from "@/config/config";
+import {Operation} from "@/types/operation.type";
 
 console.log('%c✅ balance.ts успешно подключён!', 'color: green; font-size: 16px;');
 
-export interface Operation {
-    id: number;
-    type: 'income' | 'expense';
-    amount: number | string;
-    [key: string]: any;
-}
-
 export class BalanceUI {
-    private balanceEl: HTMLElement | null;
-    private userId: number | null;
+    readonly balanceEl: HTMLElement | null;
+    readonly userId: number | null;
 
     constructor() {
         this.balanceEl = document.getElementById('userBalance');
         this.userId = SessionManager.getUserId();
 
-        console.log('BalanceUI initialized, userId:', this.userId, 'balanceEl:', this.balanceEl);
-
         if (!this.balanceEl || !this.userId) return;
-
         this.updateUserBalance();
     }
 
@@ -32,44 +23,30 @@ export class BalanceUI {
         console.log('Updating user balance...');
 
         try {
-            // Запрашиваем доходы
-            console.log('Fetching incomes from backend...');
-            const fetchedIncomes = await CustomHttp.request<Operation[]>(
-                `${config.host}/operations?type=income&user_id=${this.userId}`
+            // теперь всегда загружаем all операции
+            const fetchedOps: Operation[] | HttpError  = await CustomHttp.request<Operation[]>(
+                `${config.host}/operations?period=all`
             );
-            console.log('Incomes fetched:', fetchedIncomes);
 
-            // Запрашиваем расходы
-            console.log('Fetching expenses from backend...');
-            const fetchedExpenses = await CustomHttp.request<Operation[]>(
-                `${config.host}/operations?type=expense&user_id=${this.userId}`
-            );
-            console.log('Expenses fetched:', fetchedExpenses);
-
-            // Проверка на ошибки
-            if ((fetchedIncomes as HttpError).error || (fetchedExpenses as HttpError).error) {
-                console.warn('Ошибка при получении операций. incomes:', fetchedIncomes, 'expenses:', fetchedExpenses);
+            if ((fetchedOps as HttpError).error || !Array.isArray(fetchedOps)) {
+                console.warn('Ошибка при получении операций:', fetchedOps);
                 this.balanceEl.textContent = '$0.00';
                 return;
             }
 
-            // Фильтруем операции
-            const incomes: Operation[] = Array.isArray(fetchedIncomes)
-                ? fetchedIncomes.filter(op => op.type === 'income')
-                : [];
-            const expenses: Operation[] = Array.isArray(fetchedExpenses)
-                ? fetchedExpenses.filter(op => op.type === 'expense')
-                : [];
+            const ops: Operation[] = fetchedOps;
 
-            console.log('Incomes:', incomes);
-            console.log('Expenses:', expenses);
+            const totalIncome: number = ops
+                .filter((op: Operation): boolean => op.type === 'income')
+                .reduce((sum: number, op: Operation): number => sum + Number(op.amount), 0);
 
-            // Суммируем
-            const totalIncome = incomes.reduce((sum, op) => sum + Number(op.amount), 0);
-            const totalExpense = expenses.reduce((sum, op) => sum + Number(op.amount), 0);
+            const totalExpense: number = ops
+                .filter((op: Operation): boolean => op.type === 'expense')
+                .reduce((sum: number, op: Operation): number => sum + Number(op.amount), 0);
 
-            const finalBalance = totalIncome - totalExpense;
-            console.log('Final balance to display:', finalBalance);
+            const finalBalance: number = totalIncome - totalExpense;
+
+            console.log('Final balance =', finalBalance);
 
             this.balanceEl.textContent = `$${finalBalance.toFixed(2)}`;
         } catch (err) {
@@ -78,6 +55,7 @@ export class BalanceUI {
         }
     }
 }
+
 
 
 
