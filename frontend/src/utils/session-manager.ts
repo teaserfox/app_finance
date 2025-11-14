@@ -1,16 +1,19 @@
 import { Auth } from '@/services/auth';
-import { navigate } from '@/router.js';
-import config from '../../config/config.js';
+import { navigate } from '@/router';
+import config from '@/config/config';
+import { StoredUserType } from '@/types/stored-user.type';
+import { Tokens } from "@/types/token-user-login.type";
 
-console.log('%c✅ session-manager.js подключён!', 'color: green; font-size: 16px;');
+export interface StoredUserWithTokens extends StoredUserType {
+    tokens: Tokens | null;
+}
 
 export class SessionManager {
-
     // 🔹 массив подписчиков на изменение текущего пользователя
-    static _subscribers = [];
+    private static _subscribers: Array<(user: StoredUserType | null) => void> = [];
 
     // === 🔒 Приватные методы для безопасного доступа к localStorage ===
-    static _safeGet(key, fallback = null) {
+    private static _safeGet<T>(key: string, fallback: T): T {
         try {
             const value = localStorage.getItem(key);
             return value ? JSON.parse(value) : fallback;
@@ -20,7 +23,7 @@ export class SessionManager {
         }
     }
 
-    static _safeSet(key, value) {
+    private static _safeSet<T>(key: string, value: T): void {
         try {
             localStorage.setItem(key, JSON.stringify(value));
         } catch (e) {
@@ -28,23 +31,21 @@ export class SessionManager {
         }
     }
 
-    static _getUsers() {
-        return this._safeGet('users', []);
+    private static _getUsers(): StoredUserWithTokens[] {
+        return this._safeGet<StoredUserWithTokens[]>('users', []);
     }
 
-    static _saveUsers(users) {
+    private static _saveUsers(users: StoredUserWithTokens[]): void {
         this._safeSet('users', users);
     }
 
     // 🔹 подписка на смену пользователя
-    static subscribe(callback) {
-        if (typeof callback === 'function') {
-            this._subscribers.push(callback);
-        }
+    static subscribe(callback: (user: StoredUserType | null) => void): void {
+        if (typeof callback === 'function') this._subscribers.push(callback);
     }
 
     // 🔹 уведомление всех подписчиков о смене пользователя
-    static _notify() {
+    private static _notify(): void {
         this._subscribers.forEach(cb => {
             try { cb(this.getCurrentUser()); }
             catch (err) { console.error('Ошибка в subscriber callback:', err); }
@@ -52,11 +53,28 @@ export class SessionManager {
     }
 
     // === 🚪 Выход пользователя ===
-    static async handleLogout() {
+    static async handleLogout(): Promise<void> {
         try {
             const refreshToken = localStorage.getItem(Auth.refreshTokenKey);
-            const userInfo = this._safeGet(Auth.userInfoKey, {});
+            const userInfo = this._safeGet<StoredUserType | {}>(Auth.userInfoKey, {});
             const users = this._getUsers();
+
+            if ('userId' in userInfo) {
+                const existingUser = users.find(u => u.userId === userInfo.userId);
+
+                if (existingUser) {
+                    existingUser.tokens = null;
+                } else {
+                    users.push({
+                        userId: userInfo.userId,
+                        fullName: userInfo.fullName,
+                        email: userInfo.email,
+                        tokens: null,
+                    });
+                }
+
+                this._saveUsers(users);
+            }
 
             if (refreshToken) {
                 const res = await fetch(`${config.host}/logout`, {
@@ -71,31 +89,14 @@ export class SessionManager {
                 }
             }
 
-            if (userInfo.userId) {
-                const idx = users.findIndex(u => u.id === userInfo.userId);
-                if (idx !== -1) {
-                    users[idx].tokens = null;
-                } else {
-                    users.push({
-                        id: userInfo.userId,
-                        fullName: userInfo.fullName,
-                        email: userInfo.email,
-                        tokens: null,
-                    });
-                }
-                this._saveUsers(users);
-            }
-
             Auth.removeTokens();
             localStorage.removeItem(Auth.userInfoKey);
             localStorage.removeItem('currentUserId');
 
-            // 🔹 уведомляем подписчиков о выходе
             this._notify();
 
             navigate('/login');
-            console.log(`👋 ${userInfo.fullName || 'Пользователь'} вышел из системы`);
-
+            console.log(`👋 ${(userInfo as StoredUserType).fullName || 'Пользователь'} вышел из системы`);
         } catch (err) {
             console.error('❌ Ошибка при выходе:', err);
             navigate('/signup');
@@ -103,53 +104,50 @@ export class SessionManager {
     }
 
     // === 💾 Установка активного пользователя ===
-    static setCurrentUser(userInfo) {
+    static setCurrentUser(userInfo: StoredUserType): void {
         const users = this._getUsers();
-        const idx = users.findIndex(u => u.id === userInfo.userId);
+        const idx = users.findIndex(u => u.userId === userInfo.userId);
 
-        const userData = {
-            id: userInfo.userId,
-            fullName: userInfo.fullName,
-            email: userInfo.email,
+        const userData: StoredUserWithTokens = {
+            ...userInfo,
             tokens: {
-                accessToken: localStorage.getItem(Auth.accessTokenKey),
-                refreshToken: localStorage.getItem(Auth.refreshTokenKey),
-            },
+                accessToken: localStorage.getItem(Auth.accessTokenKey) || '',
+                refreshToken: localStorage.getItem(Auth.refreshTokenKey) || '',
+            }
         };
 
-        if (idx !== -1) users[idx] = userData;
+        if (idx >= 0) users[idx] = userData;
         else users.push(userData);
 
         this._saveUsers(users);
-        localStorage.setItem('currentUserId', userInfo.userId);
+        localStorage.setItem('currentUserId', String(userInfo.userId));
         this._safeSet(Auth.userInfoKey, userInfo);
 
         console.log(`✅ Активен пользователь: ${userInfo.fullName}`);
 
-        // 🔹 уведомляем подписчиков о смене пользователя
         this._notify();
     }
 
     // === 📋 Все пользователи ===
-    static getAllUsers() {
+    static getAllUsers(): StoredUserWithTokens[] {
         return this._getUsers();
     }
 
     // === 👤 Текущий пользователь ===
-    static getCurrentUser() {
+    static getCurrentUser(): StoredUserType | null {
         const users = this._getUsers();
         const id = localStorage.getItem('currentUserId');
-        return users.find(u => String(u.id) === String(id)) || null;
+        return users.find(u => String(u.userId) === String(id)) || null;
     }
 
     // === 🧩 Получение ID текущего пользователя ===
-    static getUserId() {
+    static getUserId(): number | null {
         const current = this.getCurrentUser();
-        return current?.id || null;
+        return current?.userId ?? null;
     }
 
     // === 🧩 Инициализация UI ===
-    static initUserUI() {
+    static initUserUI(): HTMLElement | null {
         const userDiv = document.getElementById('user');
         const current = this.getCurrentUser();
 
@@ -163,6 +161,8 @@ export class SessionManager {
         return userDiv;
     }
 }
+
+
 
 
 

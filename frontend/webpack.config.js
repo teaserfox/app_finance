@@ -1,5 +1,4 @@
-'use strict';
-
+// webpack.config.js (CommonJS)
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -8,11 +7,25 @@ const autoprefixer = require('autoprefixer');
 
 const isDev = process.env.NODE_ENV !== 'production';
 
-module.exports = {
+const devServer = {
+    static: path.resolve(__dirname, 'dist'),
+    compress: true,
+    watchFiles: ['src/**/*', 'index.html', 'templates/**/*'],
+    port: 8080,
+    open: true,
+    hot: true,
+    liveReload: true,
+    historyApiFallback: true,
+    client: {
+        overlay: true,
+        progress: true,
+    },
+};
+
+const config = {
     mode: isDev ? 'development' : 'production',
 
-    entry: './src/app.js',
-
+    entry: './src/app.ts',
     output: {
         filename: 'js/[name].js',
         path: path.resolve(__dirname, 'dist'),
@@ -29,36 +42,16 @@ module.exports = {
 
     devtool: isDev ? 'eval-source-map' : 'source-map',
 
-    devServer: {
-        static: path.resolve(__dirname, 'dist'),
-        compress: true,
-        watchFiles: ['src/**/*', 'index.html', 'templates/**/*'],
-        port: 8080,
-        open: true,
-        hot: true,
-        liveReload: true, // обновление при изменении HTML
-        historyApiFallback: true, // 👈 SPA-режим (чтобы #/signup работал)
-        client: {
-            overlay: true,
-            progress: true,
-        },
-    },
+    devServer,
 
     plugins: [
-        // Единый HTML для всего приложения (SPA)
         new HtmlWebpackPlugin({
             template: './src/index.html',
             filename: 'index.html',
         }),
-
         new MiniCssExtractPlugin({
             filename: 'css/[name].css',
         }),
-
-        // Плагин для production только
-        ...(isDev ? [] : [new MiniCssExtractPlugin({ filename: 'css/[name].css' })]),
-
-        // Копируем шаблоны и статику
         new CopyPlugin({
             patterns: [
                 { from: 'src/static', to: 'static' },
@@ -70,9 +63,9 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.m?js$/,
+                test: /\.tsx?$/,
                 exclude: /node_modules/,
-                use: 'babel-loader',
+                use: 'ts-loader',
             },
             {
                 test: /\.scss$/,
@@ -89,9 +82,7 @@ module.exports = {
                     },
                     {
                         loader: 'sass-loader',
-                        options: {
-                            sassOptions: { quietDeps: true },
-                        },
+                        options: { sassOptions: { quietDeps: true } },
                     },
                 ],
             },
@@ -112,7 +103,9 @@ module.exports = {
         alias: {
             '@': path.resolve(__dirname, 'src'),
         },
-        extensions: ['.js', '.scss'],
+        extensions: ['.tsx', '.ts', '.js', '.scss'],
     },
 };
+
+module.exports = config;
 

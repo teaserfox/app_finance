@@ -1,37 +1,38 @@
 export class Navigate {
     /** 📍 Переход по hash-маршруту */
-    static to(path) {
+    static to(path: string): void {
         if (!path.startsWith('#/')) path = `#/${path}`;
         window.location.hash = path;
     }
 
     /** 🔙 Назад */
-    static back() {
+    static back(): void {
         window.history.back();
     }
 
     /** 🏠 Главная */
-    static home() {
+    static home(): void {
         this.to('dashboard');
     }
 
     /** 👛 Доходы */
-    static income() {
+    static income(): void {
         this.to('income-categories');
     }
 
     /** 💸 Расходы */
-    static expense() {
+    static expense(): void {
         this.to('expense-categories');
     }
 
     /** 🚪 Логин */
-    static login() {
+    static login(): void {
         this.to('login');
     }
 
     /** 🧾 Регистрация */
-    static signup() {
+    static signup(): void {
         this.to('signup');
     }
 }
+
