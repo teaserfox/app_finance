@@ -36,7 +36,7 @@ export class Router {
                 template: "signup.html",
                 protected: false,
                 name: "signup",
-                load: (router, container) => {
+                load: (router: Router, container: HTMLElement): void => {
                     new Form("signup", router, container);
                 }
             },
@@ -45,16 +45,16 @@ export class Router {
                 template: "login.html",
                 protected: false,
                 name: "login",
-                load: (router, container) => {
+                load: ((router: Router, container: HTMLElement): void => {
                     new Form("login", router, container);
-                }
+                })
             },
             {
                 path: "#/sidebar",
                 template: "sidebar.html",
                 protected: true,
                 name: "sidebar",
-                load: router => {
+                load: (router: Router): void => {
                     new Sidebar(router);
                 }
             },
@@ -63,16 +63,16 @@ export class Router {
                 template: "dashboard/categories.html",
                 protected: true,
                 name: "categories",
-                load: () => new CategoriesPage(navigate)
+                load: (): CategoriesPage => new CategoriesPage(navigate)
             },
             {
                 path: "#/dashboard/category-form",
                 template: "dashboard/income-category-form.html",
                 protected: true,
                 name: "category-form",
-                load: router => {
+                load: (router: Router): void => {
                     const params = new URLSearchParams(window.location.hash.split("?")[1]);
-                    const type = params.get("type") ?? "income";
+                    const type: string = params.get("type") ?? "income";
                     new CategoriesPage(navigate, type);
                 }
             },
@@ -81,10 +81,10 @@ export class Router {
                 template: "dashboard/income-category-edit.html",
                 protected: true,
                 name: "category-edit",
-                load: router => {
+                load: (router: Router): void => {
                     const params = new URLSearchParams(window.location.hash.split("?")[1]);
-                    const type = params.get("type") ?? "income";
-                    const id = params.get("id") ?? undefined;
+                    const type: string = params.get("type") ?? "income";
+                    const id: string | undefined = params.get("id") ?? undefined;
                     new CategoriesPage(navigate, type, id);
                 }
             },
@@ -93,28 +93,28 @@ export class Router {
                 template: "dashboard/operations.html",
                 protected: true,
                 name: "operations",
-                load: router => new OperationsPage(navigate)
+                load: (router: Router): OperationsPage => new OperationsPage(navigate)
             },
             {
                 path: "#/dashboard/operation-form",
                 template: "dashboard/operation-form.html",
                 protected: true,
                 name: "operation-form",
-                load: router => new OperationsPage(navigate)
+                load: (router: Router): OperationsPage => new OperationsPage(navigate)
             },
             {
                 path: "#/dashboard/operation-edit",
                 template: "dashboard/operation-edit.html",
                 protected: true,
                 name: "operation-edit",
-                load: router => new OperationsPage(navigate)
+                load: (router: Router): OperationsPage => new OperationsPage(navigate)
             },
             {
                 path: "#/dashboard/index",
                 template: "dashboard/index.html",
                 protected: true,
                 name: "index",
-                load: router => new IndexPage(navigate)
+                load: (router: Router): IndexPage => new IndexPage(navigate)
             }
         ];
 
@@ -124,11 +124,11 @@ export class Router {
     // ---------------- INIT ----------------
 
     init(): void {
-        const container = document.getElementById("app-content");
+        const container: HTMLElement | null = document.getElementById("app-content");
         this.appContainer = container ?? document.body;
 
-        window.addEventListener("hashchange", () => this.handleRouteChange());
-        window.addEventListener("DOMContentLoaded", () => this.handleRouteChange());
+        window.addEventListener("hashchange", (): Promise<void> => this.handleRouteChange());
+        window.addEventListener("DOMContentLoaded", (): Promise<void> => this.handleRouteChange());
 
         console.log("%cRouter инициализирован", "color:green;font-weight:bold");
     }
@@ -142,7 +142,7 @@ export class Router {
     }
 
     private findRouteByHash(hash: string): RouteType | undefined {
-        return this.routes.find(r => r.path === hash);
+        return this.routes.find((r: RouteType): boolean => r.path === hash);
     }
 
     private isAuthenticated(): boolean {
@@ -162,23 +162,23 @@ export class Router {
 
         if (options.replace) {
             history.replaceState(null, "", hash);
-            this.handleRouteChange();
+            void this.handleRouteChange();
             return;
         }
 
         if (window.location.hash !== hash) {
             window.location.hash = hash;
         } else {
-            this.handleRouteChange();
+            void this.handleRouteChange();
         }
     }
 
     // ---------------- MAIN ROUTER ----------------
 
     private async handleRouteChange(): Promise<void> {
-        const currentHash = this.getCurrentRouteHash();
+        const currentHash: string | undefined = this.getCurrentRouteHash();
         if (currentHash) {
-            const route = this.findRouteByHash(currentHash);
+            const route: RouteType | undefined = this.findRouteByHash(currentHash);
             if (!route) {
                 console.warn(`Маршрут ${currentHash} не найден`);
                 return this.loadNotFound();
@@ -199,14 +199,14 @@ export class Router {
     }
 
     private async handleSidebar(currentHash: string): Promise<void> {
-        const sidebarContainer = document.getElementById("sidebar-container");
-        const mainWrapper = document.getElementById("index");
+        const sidebarContainer: HTMLElement | null = document.getElementById("sidebar-container");
+        const mainWrapper: HTMLElement | null = document.getElementById("index");
 
         if (!sidebarContainer || !mainWrapper) return;
 
         if (currentHash.startsWith("#/dashboard")) {
             if (!this.sidebarLoaded) {
-                const html = await fetch(this.templatesBasePath + "sidebar.html").then(r => r.text());
+                const html: string = await fetch(this.templatesBasePath + "sidebar.html").then((r: Response): Promise<string> => r.text());
                 sidebarContainer.innerHTML = html;
                 new Sidebar(this);
                 this.sidebarLoaded = true;
@@ -223,16 +223,16 @@ export class Router {
     // ---------------- PAGE LOADER ----------------
 
     private async loadTemplateAndInit(route: RouteType): Promise<void> {
-        const path = this.templatesBasePath + route.template;
+        const path: string = this.templatesBasePath + route.template;
 
         try {
-            const res = await fetch(path);
+            const res: Response = await fetch(path);
             if (!res.ok) return this.loadNotFound();
 
-            const html = await res.text();
+            const html: string = await res.text();
             this.appContainer.innerHTML = html;
 
-            await route.load(this, this.appContainer);
+            route.load(this, this.appContainer);
         } catch (e) {
             console.warn("Ошибка загрузки шаблона:", path, e);
             return this.loadNotFound();
@@ -240,7 +240,7 @@ export class Router {
     }
 
     private async loadNotFound(): Promise<void> {
-        const res = await fetch(this.templatesBasePath + "404.html").catch(() => null);
+        const res: Response | null = await fetch(this.templatesBasePath + "404.html").catch((): null => null);
 
         if (!res || !res.ok) {
             this.appContainer.innerHTML = `<div class="p-5 text-center">Страница не найдена</div>`;
@@ -252,4 +252,4 @@ export class Router {
 }
 
 export const routerInstance = new Router();
-export const navigate = (path: string) => routerInstance.navigate(path);
+export const navigate = (path: string): void => routerInstance.navigate(path);

@@ -1,12 +1,9 @@
 import { Auth } from '@/services/auth';
 import { navigate } from '@/router';
 import config from '@/config/config';
-import { StoredUserType } from '@/types/stored-user.type';
-import { Tokens } from "@/types/token-user-login.type";
+import {StoredUserType, StoredUserWithTokens} from '@/types/stored-user.type';
 
-export interface StoredUserWithTokens extends StoredUserType {
-    tokens: Tokens | null;
-}
+
 
 export class SessionManager {
     // 🔹 массив подписчиков на изменение текущего пользователя
@@ -15,7 +12,7 @@ export class SessionManager {
     // === 🔒 Приватные методы для безопасного доступа к localStorage ===
     private static _safeGet<T>(key: string, fallback: T): T {
         try {
-            const value = localStorage.getItem(key);
+            const value: string | null = localStorage.getItem(key);
             return value ? JSON.parse(value) : fallback;
         } catch {
             console.warn(`⚠️ Повреждён localStorage ключ: ${key}`);
@@ -55,12 +52,13 @@ export class SessionManager {
     // === 🚪 Выход пользователя ===
     static async handleLogout(): Promise<void> {
         try {
-            const refreshToken = localStorage.getItem(Auth.refreshTokenKey);
-            const userInfo = this._safeGet<StoredUserType | {}>(Auth.userInfoKey, {});
-            const users = this._getUsers();
+            const refreshToken: string | null = localStorage.getItem(Auth.refreshTokenKey);
+            const userInfo: {} | StoredUserType = this._safeGet<StoredUserType | {}>(Auth.userInfoKey, {});
+            const users: StoredUserWithTokens[] = this._getUsers();
 
             if ('userId' in userInfo) {
-                const existingUser = users.find(u => u.userId === userInfo.userId);
+                const existingUser: StoredUserWithTokens | undefined = users.find((u: StoredUserWithTokens): boolean =>
+                    u.userId === userInfo.userId);
 
                 if (existingUser) {
                     existingUser.tokens = null;
@@ -77,7 +75,7 @@ export class SessionManager {
             }
 
             if (refreshToken) {
-                const res = await fetch(`${config.host}/logout`, {
+                const res: Response = await fetch(`${config.host}/logout`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ refreshToken }),
@@ -105,8 +103,8 @@ export class SessionManager {
 
     // === 💾 Установка активного пользователя ===
     static setCurrentUser(userInfo: StoredUserType): void {
-        const users = this._getUsers();
-        const idx = users.findIndex(u => u.userId === userInfo.userId);
+        const users: StoredUserWithTokens[] = this._getUsers();
+        const idx: number = users.findIndex((u: StoredUserWithTokens): boolean => u.userId === userInfo.userId);
 
         const userData: StoredUserWithTokens = {
             ...userInfo,
@@ -135,21 +133,21 @@ export class SessionManager {
 
     // === 👤 Текущий пользователь ===
     static getCurrentUser(): StoredUserType | null {
-        const users = this._getUsers();
-        const id = localStorage.getItem('currentUserId');
-        return users.find(u => String(u.userId) === String(id)) || null;
+        const users: StoredUserWithTokens[] = this._getUsers();
+        const id: string | null = localStorage.getItem('currentUserId');
+        return users.find((u: StoredUserWithTokens): boolean => String(u.userId) === String(id)) || null;
     }
 
     // === 🧩 Получение ID текущего пользователя ===
     static getUserId(): number | null {
-        const current = this.getCurrentUser();
+        const current: StoredUserType | null = this.getCurrentUser();
         return current?.userId ?? null;
     }
 
     // === 🧩 Инициализация UI ===
     static initUserUI(): HTMLElement | null {
-        const userDiv = document.getElementById('user');
-        const current = this.getCurrentUser();
+        const userDiv: HTMLElement | null = document.getElementById('user');
+        const current: StoredUserType | null = this.getCurrentUser();
 
         if (userDiv && current?.fullName) {
             userDiv.textContent = current.fullName;

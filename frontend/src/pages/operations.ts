@@ -3,26 +3,9 @@ import { navigate } from "@/router";
 import config from "@/config/config";
 import { BalanceUI } from "@/js/balance";
 import * as bootstrap from "bootstrap";
-
-interface Operation {
-    id: number;
-    type: 'income' | 'expense';
-    category: string;
-    category_id?: number;
-    amount: number;
-    date: string;
-    comment?: string;
-    __parsedDate?: Date;
-    error?: boolean;
-    message?: string;
-}
-
-interface Category {
-    id: string;
-    title: string;
-    error?: boolean;
-    message?: string;
-}
+import {Operation} from "@/types/operation.type";
+import {CategoryType} from "@/types/category.type";
+import {HttpErrorType} from "@/types/http-error.type";
 
 export class OperationsPage {
     private router: typeof navigate;
@@ -106,12 +89,12 @@ export class OperationsPage {
             const allOps = response as Operation[];
 
             // Парсим дату
-            this.operations = allOps.map(op => ({
+            this.operations = allOps.map((op: Operation) => ({
                 ...op,
                 __parsedDate: new Date(op.date)
             }));
 
-            let filtered = this.operations.slice();
+            let filtered: Operation[] = this.operations.slice();
 
             // ---- ФРОНТОВАЯ фильтрация ----
 
@@ -126,21 +109,21 @@ export class OperationsPage {
             if (period === "week") {
                 const weekAgo = new Date();
                 weekAgo.setDate(now.getDate() - 7);
-                filtered = filtered.filter(op =>
+                filtered = filtered.filter((op: Operation): boolean =>
                     op.__parsedDate! >= weekAgo
                 );
             }
 
             if (period === "month") {
                 const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-                filtered = filtered.filter(op =>
+                filtered = filtered.filter((op: Operation): boolean =>
                     op.__parsedDate! >= firstDay
                 );
             }
 
             if (period === "year") {
                 const firstDay = new Date(now.getFullYear(), 0, 1);
-                filtered = filtered.filter(op =>
+                filtered = filtered.filter((op: Operation): boolean =>
                     op.__parsedDate! >= firstDay
                 );
             }
@@ -148,14 +131,14 @@ export class OperationsPage {
             if (period === "interval" && dateFrom && dateTo) {
                 const dFrom = new Date(dateFrom);
                 const dTo = new Date(dateTo);
-                filtered = filtered.filter(op =>
+                filtered = filtered.filter((op: Operation): boolean =>
                     op.__parsedDate! >= dFrom && op.__parsedDate! <= dTo
                 );
             }
 
             // ---- конец фильтра ----
 
-            const sorted = filtered.sort((a, b) =>
+            const sorted: Operation[] = filtered.sort((a: Operation, b: Operation): number =>
                 (b.__parsedDate?.getTime() || 0) - (a.__parsedDate?.getTime() || 0)
             );
 
@@ -170,19 +153,19 @@ export class OperationsPage {
 
     private renderOperations(ops: Operation[] | null = null): void {
         if (!this.tableBody) return;
-        const list = ops ?? this.operations;
+        const list: Operation[] = ops ?? this.operations;
 
         this.tableBody.innerHTML = '';
         if (!list.length) {
-            const trEmpty = document.createElement('tr');
+            const trEmpty: HTMLTableRowElement = document.createElement('tr');
             trEmpty.innerHTML = `<td colspan="7" class="text-center text-muted py-4">Нет операций за выбранный период</td>`;
             this.tableBody.appendChild(trEmpty);
             return;
         }
 
-        list.forEach((op, index) => {
-            const tr = document.createElement('tr');
-            const displayDate = op.__parsedDate ? op.__parsedDate.toLocaleDateString() : (op.date || '');
+        list.forEach((op: Operation, index: number): void => {
+            const tr: HTMLTableRowElement = document.createElement('tr');
+            const displayDate: string = op.__parsedDate ? op.__parsedDate.toLocaleDateString() : (op.date || '');
             tr.innerHTML = `
                 <td class="td-title p-0">${index + 1}</td>
                 <td class="${op.type === 'income' ? 'text-income' : 'text-expense'}">${op.type === 'income' ? 'доход' : 'расход'}</td>
@@ -204,23 +187,23 @@ export class OperationsPage {
     }
 
     private addEventListeners(): void {
-        this.createIncomeBtn?.addEventListener('click', () => navigate('#/dashboard/operation-form?type=income'));
-        this.createExpenseBtn?.addEventListener('click', () => navigate('#/dashboard/operation-form?type=expense'));
+        this.createIncomeBtn?.addEventListener('click', (): void => navigate('#/dashboard/operation-form?type=income'));
+        this.createExpenseBtn?.addEventListener('click', (): void => navigate('#/dashboard/operation-form?type=expense'));
 
-        this.filterButtons.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                this.filterButtons.forEach(b => b.classList.remove('active-filter'));
+        this.filterButtons.forEach((btn: HTMLButtonElement): void => {
+            btn.addEventListener('click', async (e: PointerEvent): Promise<void> => {
+                this.filterButtons.forEach((b: HTMLButtonElement): void => b.classList.remove('active-filter'));
                 const target = e.currentTarget as HTMLButtonElement;
                 target.classList.add('active-filter');
 
-                const rawText = (target.dataset.period || target.textContent || '').trim().toLowerCase();
-                const backendPeriod = this._mapKeyToBackendPeriod(this._mapButtonTextToKey(rawText));
+                const rawText: string = (target.dataset.period || target.textContent || '').trim().toLowerCase();
+                const backendPeriod: string = this._mapKeyToBackendPeriod(this._mapButtonTextToKey(rawText));
 
                 if (backendPeriod === 'interval') {
                     const dateFromInput = document.getElementById('dateFrom') as HTMLInputElement | null;
                     const dateToInput = document.getElementById('dateTo') as HTMLInputElement | null;
-                    const dateFrom = dateFromInput?.value;
-                    const dateTo = dateToInput?.value;
+                    const dateFrom: string | undefined = dateFromInput?.value;
+                    const dateTo: string | undefined = dateToInput?.value;
 
                     if (!dateFrom || !dateTo) return alert('Выберите обе даты для интервала');
 
@@ -235,7 +218,7 @@ export class OperationsPage {
         const dateToInput = document.getElementById('dateTo') as HTMLInputElement | null;
         const intervalBtn = document.querySelector('button[data-period="interval"]') as HTMLButtonElement | null;
 
-        function checkIntervalDates() {
+        function checkIntervalDates(): void {
             if (!dateFromInput || !dateToInput || !intervalBtn) return;
             if (dateFromInput.value && dateToInput.value) {
                 intervalBtn.disabled = false;
@@ -254,22 +237,22 @@ export class OperationsPage {
     private addRowEventListeners(): void {
         this.tableBody?.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', e => {
-                const id = (e.currentTarget as HTMLButtonElement).dataset.id;
+                const id: string | undefined = (e.currentTarget as HTMLButtonElement).dataset.id;
                 if (id) navigate(`#/dashboard/operation-form?id=${id}`);
             });
         });
 
         this.tableBody?.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', e => {
-                const id = (e.currentTarget as HTMLButtonElement).dataset.id;
+                const id: string | undefined = (e.currentTarget as HTMLButtonElement).dataset.id;
                 if (id) this.handleDelete(id);
             });
         });
     }
 
     public async handleDelete(id: string): Promise<void> {
-        const confirmModalEl = document.getElementById('confirmModal');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const confirmModalEl: HTMLElement | null = document.getElementById('confirmModal');
+        const confirmDeleteBtn: HTMLElement | null = document.getElementById('confirmDeleteBtn');
 
         if (!confirmModalEl || !confirmDeleteBtn) return alert('Модальное окно не найдено');
 
@@ -279,7 +262,7 @@ export class OperationsPage {
             const confirmHandler = async () => {
                 try {
                     await CustomHttp.request(`${config.host}/operations/${id}`, 'DELETE');
-                    this.operations = this.operations.filter(op => op.id.toString() !== id);
+                    this.operations = this.operations.filter((op: Operation): boolean => op.id.toString() !== id);
                     this.renderOperations();
                     if ((window as any).balanceUI) await (window as any).balanceUI.updateUserBalance();
                     resolve();
@@ -307,103 +290,127 @@ export class OperationsPage {
 
         if (this.typeInput) {
             this.typeInput.innerHTML = '';
-            const incomeOption = document.createElement('option');
+            const incomeOption: HTMLOptionElement = document.createElement('option');
             incomeOption.value = 'income';
             incomeOption.textContent = 'Доход';
-            const expenseOption = document.createElement('option');
+            const expenseOption: HTMLOptionElement = document.createElement('option');
             expenseOption.value = 'expense';
             expenseOption.textContent = 'Расход';
             this.typeInput.appendChild(incomeOption);
             this.typeInput.appendChild(expenseOption);
 
-            const resolvedType = this.type || 'income';
+            const resolvedType: string = this.type || 'income';
             this.typeInput.value = resolvedType;
 
             await this.loadCategories(resolvedType);
 
-            this.typeInput.addEventListener('change', async (e) => {
-                const selectedType = (e.target as HTMLSelectElement).value;
+            this.typeInput.addEventListener('change', async (e): Promise<void> => {
+                const selectedType: string = (e.target as HTMLSelectElement).value;
                 await this.loadCategories(selectedType);
             });
         }
 
         if (this.id) await this.loadOperationData();
 
-        this.cancelBtn?.addEventListener('click', () => navigate('#/dashboard/operations'));
-        this.operationForm?.addEventListener('submit', (e) => {
+        this.cancelBtn?.addEventListener('click', (): void => navigate('#/dashboard/operations'));
+        this.operationForm?.addEventListener('submit', (e): void => {
             e.preventDefault();
             this.submitForm();
         });
     }
 
     public async loadCategories(typeParam?: string): Promise<void> {
-        try {
-            const type = typeParam || this.typeInput?.value || this.type || 'income';
-            const response = await CustomHttp.request(`${config.host}/categories/${type}`) as Category[] | { error: boolean; message: string };
-            if ((response as any).error) throw new Error((response as any).message || 'Ошибка загрузки категорий');
+        const type: string = typeParam || this.typeInput?.value || this.type || 'income';
 
-            const categories = response as Category[];
+        try {
+            const response: HttpErrorType | CategoryType[] = await CustomHttp.request<CategoryType[] | HttpErrorType>(`${config.host}/categories/${type}`);
+
+            if ('error' in response && response.error) {
+                throw new Error(response.message || 'Ошибка загрузки категорий');
+            }
+
+            const categories = response as CategoryType[];
             this.categorySelect!.innerHTML = '';
-            categories.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat.id;
+
+            categories.forEach((cat: CategoryType): void => {
+                const option: HTMLOptionElement = document.createElement('option');
+                option.value = String(cat.id); // string обязателен
                 option.textContent = cat.title;
                 this.categorySelect!.appendChild(option);
             });
-        } catch (err: any) {
-            console.error('Ошибка загрузки категорий:', err.message);
+        } catch (err: unknown) {
+            const msg: string = err instanceof Error ? err.message : 'Неизвестная ошибка';
+            console.error('Ошибка загрузки категорий:', msg);
             alert('Не удалось загрузить категории');
         }
     }
 
+
     public async loadOperationData(): Promise<void> {
+        if (!this.id) return;
+
         try {
-            const op = await CustomHttp.request(`${config.host}/operations/${this.id}`) as Operation | { error: boolean; message: string };
-            if ((op as any).error) throw new Error((op as any).message || 'Ошибка загрузки операции');
+            const op: Operation | HttpErrorType =
+                await CustomHttp.request<Operation | HttpErrorType>(`${config.host}/operations/${this.id}`);
+
+            if ('error' in op && op.error) {
+                throw new Error(op.message || 'Ошибка загрузки операции');
+            }
 
             const operation = op as Operation;
             if (this.amountInput) this.amountInput.value = operation.amount.toString();
             if (this.commentInput) this.commentInput.value = operation.comment || '';
-            if (this.dateInput) this.dateInput.value = (operation.date || '').split('T')[0] || '';
+            if (this.dateInput) this.dateInput.value = operation.date?.split('T')[0] || '';
             this.type = operation.type;
             if (this.typeInput) this.typeInput.value = this.type;
+
             await this.loadCategories(this.type);
             if (this.categorySelect) this.categorySelect.value = operation.category_id?.toString() || '';
-        } catch (err: any) {
-            console.error('Ошибка загрузки данных операции:', err.message);
+
+        } catch (err: unknown) {
+            const msg: string = err instanceof Error ? err.message : 'Неизвестная ошибка';
+            console.error('Ошибка загрузки данных операции:', msg);
             alert('Не удалось загрузить данные операции');
         }
     }
 
+
     public async submitForm(): Promise<void> {
+        if (!this.typeInput || !this.categorySelect || !this.amountInput || !this.dateInput) return;
+
         const data = {
-            type: this.typeInput?.value || this.type || 'income',
-            category_id: Number(this.categorySelect?.value),
-            amount: Number(this.amountInput?.value),
-            date: this.dateInput?.value,
+            type: this.typeInput.value,
+            category_id: Number(this.categorySelect.value),
+            amount: Number(this.amountInput.value),
+            date: this.dateInput.value,
             comment: this.commentInput?.value?.trim() || ''
         };
 
         try {
-            const result = this.id
-                ? await CustomHttp.request(`${config.host}/operations/${this.id}`, 'PUT', data)
-                : await CustomHttp.request(`${config.host}/operations`, 'POST', data);
+            const result: HttpErrorType | null = this.id
+                ? await CustomHttp.request<null | HttpErrorType>(`${config.host}/operations/${this.id}`, 'PUT', data)
+                : await CustomHttp.request<null | HttpErrorType>(`${config.host}/operations`, 'POST', data);
 
-            if (!(result as any).error) {
-                console.log('✅ Операция успешно сохранена:', result);
-                if ((window as any).balanceUI) await (window as any).balanceUI.updateUserBalance();
-                navigate('#/dashboard/operations');
-            } else {
-                throw new Error((result as any).message || 'Ошибка при сохранении операции');
+            if (result && 'error' in result && result.error) {
+                throw new Error(result.message || 'Ошибка при сохранении операции');
             }
-        } catch (error: any) {
-            console.error('❌ Ошибка при сохранении операции:', error.message);
+
+            if ((window as { balanceUI?: BalanceUI }).balanceUI) {
+                await (window as { balanceUI?: BalanceUI }).balanceUI!.updateUserBalance();
+            }
+
+            navigate('#/dashboard/operations');
+
+        } catch (err: unknown) {
+            const msg: string = err instanceof Error ? err.message : 'Неизвестная ошибка';
+            console.error('Ошибка при сохранении операции:', msg);
             alert('Не удалось сохранить операцию');
         }
     }
 
+
     private _mapButtonTextToKey(text: string): string {
-        const t = text.trim().toLowerCase();
+        const t: string = text.trim().toLowerCase();
         if (t.includes('сегодня') || t === 'today') return 'today';
         if (t.includes('неделя') || t === 'week') return 'week';
         if (t.includes('месяц') || t === 'month') return 'month';

@@ -1,11 +1,9 @@
 import { Auth } from "./auth";
+import {HttpErrorType} from "@/types/http-error.type";
+import {RequestHeadersType} from "@/types/request-headers.type";
+import {RequestBodyType} from "@/types/request-body.type";
 
 console.log('%c✅ custom-http.ts успешно подключён!', 'color: green; font-size: 16px;');
-
-export interface HttpError {
-    error: true;
-    message: string;
-}
 
 export class CustomHttp {
     /**
@@ -16,24 +14,23 @@ export class CustomHttp {
      * @param headers - дополнительные заголовки
      * @returns результат типа T или HttpError
      */
-    static async request<T = any>(
+    static async request<TResponse, TRequest = unknown>(
         url: string,
-        method: string = "GET",
-        body: Record<string, any> | null = null,
-        headers: Record<string, string> = {}
-    ): Promise<T | HttpError> {
-        // создаём базовые headers
+        method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+        body?: RequestBodyType<TRequest>,
+        headers: RequestHeadersType = {}
+    ): Promise<TResponse | HttpErrorType> {
         const params: RequestInit = {
             method,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                ...headers, // любые дополнительные заголовки
+                ...headers,
             },
         };
 
-        // Гарантируем, что токен всегда в headers
-        const token = localStorage.getItem(Auth.accessTokenKey);
+        // Токен всегда в headers
+        const token: string | null = localStorage.getItem(Auth.accessTokenKey);
         if (token) {
             (params.headers as Record<string, string>)['x-auth-token'] = token;
         }
@@ -52,19 +49,19 @@ export class CustomHttp {
             return { error: true, message: "Сервер недоступен" };
         }
 
-        let data: T | HttpError | null = null;
+        let data: unknown = null;
         try {
             data = await response.json();
         } catch {
             data = null;
         }
 
-        // обработка 401 — пробуем обновить токен
+        // Обработка 401
         if (response.status === 401) {
             console.warn('🔄 Получен 401 — обновляем токен...');
-            const refreshed = await Auth.processUnauthorizedResponse();
+            const refreshed: boolean = await Auth.processUnauthorizedResponse();
             if (refreshed) {
-                return await this.request<T>(url, method, body, headers);
+                return await this.request<TResponse, TRequest>(url, method, body, headers);
             }
 
             console.warn('🚫 Refresh не удалось — redirect → /login');
@@ -72,13 +69,13 @@ export class CustomHttp {
             return { error: true, message: "Unauthorized" };
         }
 
-        // другие ошибки HTTP
+        // Другие ошибки HTTP
         if (!response.ok) {
-            return (data ?? { error: true, message: `HTTP Error ${response.status}` });
+            return (data ?? { error: true, message: `HTTP Error ${response.status}` }) as HttpErrorType;
         }
 
-        // ✅ Всё ок — возвращаем данные как T
-        return data as T;
+        // ✅ Всё ок — возвращаем данные как TResponse
+        return data as TResponse;
     }
 }
 

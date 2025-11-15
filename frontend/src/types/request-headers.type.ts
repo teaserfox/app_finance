@@ -1,0 +1,1 @@
+export type RequestHeadersType = Record<string, string>;

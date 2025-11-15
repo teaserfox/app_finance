@@ -1,9 +1,8 @@
 import { Chart } from 'chart.js/auto';
 import { OperationsService } from '@/services/operations-service';
-import type { Operation as OperationType } from '@/types/operation.type';
-import {navigate} from "@/router"; // импортируем правильный тип
-
-type PeriodKey = 'all' | 'today' | 'week' | 'month' | 'year' | 'interval';
+import type {Operation, Operation as OperationType} from '@/types/operation.type';
+import {navigate} from "@/router";
+import {PeriodKeyType} from "@/types/period-key.type"; // импортируем правильный тип
 
 export class IndexPage {
     private incomeCanvas: HTMLCanvasElement | null;
@@ -35,14 +34,14 @@ export class IndexPage {
             return;
         }
 
-        this.filterButtons.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                this.filterButtons.forEach(b => b.classList.remove('active-filter'));
+        this.filterButtons.forEach((btn: HTMLButtonElement): void => {
+            btn.addEventListener('click', async (e: PointerEvent): Promise<void> => {
+                this.filterButtons.forEach((b: HTMLButtonElement): void => b.classList.remove('active-filter'));
                 const target = e.currentTarget as HTMLButtonElement;
                 target.classList.add('active-filter');
 
-                const periodText = target.textContent?.trim().toLowerCase() || '';
-                const period: PeriodKey = this._mapButtonTextToKey(periodText);
+                const periodText: string = target.textContent?.trim().toLowerCase() || '';
+                const period: PeriodKeyType = this._mapButtonTextToKey(periodText);
 
                 let dateFrom: string | null = null;
                 let dateTo: string | null = null;
@@ -57,16 +56,16 @@ export class IndexPage {
             });
         });
 
-        [this.dateFromInput, this.dateToInput].forEach(input => {
-            input.addEventListener('input', () => {
-                const activeBtn = Array.from(this.filterButtons).find(b => b.classList.contains('active-filter'));
+        [this.dateFromInput, this.dateToInput].forEach((input: HTMLInputElement): void => {
+            input.addEventListener('input', (): void => {
+                const activeBtn: HTMLButtonElement | undefined = Array.from(this.filterButtons).find((b: HTMLButtonElement): boolean => b.classList.contains('active-filter'));
                 if (activeBtn && activeBtn.textContent?.toLowerCase().includes('интервал')) {
                     activeBtn.click();
                 }
             });
         });
 
-        const defaultBtn = Array.from(this.filterButtons).find(b => b.textContent?.toLowerCase().includes('сегодня'));
+        const defaultBtn: HTMLButtonElement | undefined = Array.from(this.filterButtons).find((b: HTMLButtonElement): boolean => b.textContent?.toLowerCase().includes('сегодня'));
         if (defaultBtn) defaultBtn.click();
     }
 
@@ -74,8 +73,8 @@ export class IndexPage {
         const incomeData: Record<string, number> = {};
         const expenseData: Record<string, number> = {};
 
-        ops.forEach(op => {
-            const category = op.category || 'Без категории';
+        ops.forEach((op: Operation): void => {
+            const category: string = op.category || 'Без категории';
             if (op.type === 'income') incomeData[category] = (incomeData[category] || 0) + op.amount;
             else if (op.type === 'expense') expenseData[category] = (expenseData[category] || 0) + op.amount;
         });
@@ -85,9 +84,9 @@ export class IndexPage {
     }
 
     private renderChart(canvas: HTMLCanvasElement, dataObj: Record<string, number>, label: string): void {
-        const labels = Object.keys(dataObj);
-        const data = Object.values(dataObj);
-        const backgroundColor = ['#dc3545','#fd7e14','#ffc107','#20C997','#0d6efd'];
+        const labels: string[] = Object.keys(dataObj);
+        const data: number[] = Object.values(dataObj);
+        const backgroundColor: string[] = ['#dc3545','#fd7e14','#ffc107','#20C997','#0d6efd'];
 
         // @ts-ignore
         if (canvas.chartInstance) canvas.chartInstance.destroy();
@@ -100,7 +99,7 @@ export class IndexPage {
         });
     }
 
-    private _mapButtonTextToKey(text: string): PeriodKey {
+    private _mapButtonTextToKey(text: string): PeriodKeyType {
         text = text?.trim().toLowerCase();
         if (!text) return 'all';
         if (text.includes('сегодня')) return 'today';

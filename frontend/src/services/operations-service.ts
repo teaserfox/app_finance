@@ -1,6 +1,7 @@
 import { CustomHttp } from "@/services/custom-http";
 import config from "@/config/config";
 import { Operation } from "@/types/operation.type";
+import {HttpErrorType} from "@/types/http-error.type";
 
 
 export class OperationsService {
@@ -17,12 +18,12 @@ export class OperationsService {
         dateTo: string | null = null
     ): Promise<Operation[]> {
         try {
-            let url = `${config.host}/operations?period=${period}`;
+            let url: string = `${config.host}/operations?period=${period}`;
             if (period === 'interval' && dateFrom && dateTo) {
                 url += `&dateFrom=${encodeURIComponent(dateFrom)}&dateTo=${encodeURIComponent(dateTo)}`;
             }
 
-            const response = await CustomHttp.request<Operation[]>(url);
+            const response: Operation[] | HttpErrorType = await CustomHttp.request<Operation[]>(url);
             return Array.isArray(response) ? response : [];
         } catch (err: any) {
             console.error('❌ Ошибка при загрузке операций:', err?.message ?? err);

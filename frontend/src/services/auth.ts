@@ -1,6 +1,6 @@
 import config from "@/config/config";
 import { Router } from "@/router";
-import { Tokens, User, LoginResponse } from "@/types/token-user-login.type";
+import { User, LoginResponse } from "@/types/token-user-login.type";
 
 console.log('%c✅ auth.ts успешно подключён!', 'color: green; font-size: 16px;');
 
@@ -19,14 +19,14 @@ export class Auth {
 
     /** Обновление токена при 401 */
     static async processUnauthorizedResponse(): Promise<boolean> {
-        const refreshToken = localStorage.getItem(this.refreshTokenKey);
+        const refreshToken: string | null = localStorage.getItem(this.refreshTokenKey);
         if (!refreshToken) {
             this.handleLogoutRedirect();
             return false;
         }
 
         try {
-            const response = await fetch(`${config.host}/refresh`, {
+            const response: Response = await fetch(`${config.host}/refresh`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ refreshToken }),
@@ -58,14 +58,14 @@ export class Auth {
 
     /** Logout */
     static async logout(): Promise<boolean> {
-        const refreshToken = localStorage.getItem(this.refreshTokenKey);
+        const refreshToken: string | null = localStorage.getItem(this.refreshTokenKey);
         if (!refreshToken) {
             this.handleLogoutRedirect();
             return false;
         }
 
         try {
-            const response = await fetch(`${config.host}/logout`, {
+            const response: Response = await fetch(`${config.host}/logout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ refreshToken }),
@@ -121,7 +121,7 @@ export class Auth {
     static saveUserToList(user: User): void {
         try {
             const users: User[] = JSON.parse(localStorage.getItem(this.userListKey) || "[]");
-            if (!users.some(u => u.email === user.email)) {
+            if (!users.some((u: User): boolean => u.email === user.email)) {
                 users.push(user);
                 localStorage.setItem(this.userListKey, JSON.stringify(users));
             }

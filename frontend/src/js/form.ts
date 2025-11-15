@@ -1,11 +1,12 @@
 import config from "@/config/config";
 import { Auth } from "@/services/auth";
 import {LoginResponse, User} from "@/types/token-user-login.type";
-import {CustomHttp, HttpError} from "@/services/custom-http";
+import {CustomHttp} from "@/services/custom-http";
 import { SessionManager } from "@/utils/session-manager";
 import { Router } from "@/router";
 import {FormType} from "@/types/form.type";
 import { StoredUserType } from "@/types/stored-user.type";
+import {HttpErrorType} from "@/types/http-error.type";
 
 
 export class Form {
@@ -125,7 +126,7 @@ export class Form {
     }
 
     private async handleSignup(email: string, password: string): Promise<void> {
-        const result: LoginResponse | HttpError = await CustomHttp.request<LoginResponse>(`${config.host}/signup`, 'POST', {
+        const result: LoginResponse | HttpErrorType = await CustomHttp.request<LoginResponse>(`${config.host}/signup`, 'POST', {
             name: this.getValue('name'),
             lastName: this.getValue('lastName'),
             email,
@@ -142,7 +143,7 @@ export class Form {
 
     private async handleLogin(email: string, password: string, rememberMe: boolean): Promise<void> {
         // Запрос на сервер
-        const result: LoginResponse | HttpError = await CustomHttp.request<LoginResponse>(
+        const result: LoginResponse | HttpErrorType = await CustomHttp.request<LoginResponse>(
             `${config.host}/login`,
             'POST',
             { email, password }

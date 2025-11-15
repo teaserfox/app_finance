@@ -1,0 +1,1 @@
+export type PeriodKeyType = 'all' | 'today' | 'week' | 'month' | 'year' | 'interval';

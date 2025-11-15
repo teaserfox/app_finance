@@ -8,7 +8,7 @@ console.log('%c✅ sidebar.ts успешно подключён!', 'color: green
 export class Sidebar {
     readonly router: typeof routerInstance;
     private navLinks: NodeListOf<HTMLAnchorElement>;
-    private balanceUI: BalanceUI = new BalanceUI();
+    readonly balanceUI: BalanceUI = new BalanceUI();
     readonly userDiv: HTMLElement | null;
 
     constructor(router: typeof routerInstance = routerInstance) {
@@ -16,8 +16,8 @@ export class Sidebar {
         this.navLinks = document.querySelectorAll('.nav-link');
 
         this.userDiv = document.getElementById('user');
-        (window as any).balanceUI || new BalanceUI();
-        (window as any).balanceUI = this.balanceUI; // чтобы использовать глобально
+        window.balanceUI ||= new BalanceUI(); // создаём, если ещё нет
+        this.balanceUI = window.balanceUI;   // используем глобально
 
         if (!this.navLinks.length) {
             console.warn('⚠️ Sidebar: ссылки меню не найдены.');
@@ -234,7 +234,7 @@ export class Sidebar {
             textDiv.classList.add('menu');
         }
         if (svg) svg.setAttribute('fill', '#052C65');
-        link.querySelectorAll<SVGPathElement>('svg path').forEach(path => path.setAttribute('fill', '#052C65'));
+        link.querySelectorAll<SVGPathElement>('svg path').forEach((path: SVGPathElement): void => path.setAttribute('fill', '#052C65'));
     }
 }
 

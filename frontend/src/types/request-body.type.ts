@@ -1,0 +1,1 @@
+export type RequestBodyType<T> = T | null;

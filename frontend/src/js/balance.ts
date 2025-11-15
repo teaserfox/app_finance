@@ -1,7 +1,8 @@
 import { SessionManager } from "@/utils/session-manager";
-import { CustomHttp, HttpError } from "@/services/custom-http";
+import { CustomHttp } from "@/services/custom-http";
 import config from "@/config/config";
 import {Operation} from "@/types/operation.type";
+import {HttpErrorType} from "@/types/http-error.type";
 
 console.log('%c✅ balance.ts успешно подключён!', 'color: green; font-size: 16px;');
 
@@ -24,11 +25,11 @@ export class BalanceUI {
 
         try {
             // теперь всегда загружаем all операции
-            const fetchedOps: Operation[] | HttpError  = await CustomHttp.request<Operation[]>(
+            const fetchedOps: Operation[] | HttpErrorType  = await CustomHttp.request<Operation[]>(
                 `${config.host}/operations?period=all`
             );
 
-            if ((fetchedOps as HttpError).error || !Array.isArray(fetchedOps)) {
+            if ((fetchedOps as HttpErrorType).error || !Array.isArray(fetchedOps)) {
                 console.warn('Ошибка при получении операций:', fetchedOps);
                 this.balanceEl.textContent = '$0.00';
                 return;

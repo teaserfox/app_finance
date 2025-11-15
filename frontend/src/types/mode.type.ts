@@ -1,0 +1,1 @@
+export type ModeType = 'list' | 'form' | 'edit';
