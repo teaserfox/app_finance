@@ -1,0 +1,1 @@
+Personal finance management application built with vanilla JavaScript and Node.js/Express. The project includes authentication, income and expense categories, financial operations and balance management.
